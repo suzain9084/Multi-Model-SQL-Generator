@@ -1,0 +1,1004 @@
+[
+  {
+    "question_id": "sample_0",
+    "question": "List down at least five publishers of the games with number of sales less than 10000.",
+    "evidence": "publishers refers to publisher_name; number of sales less than 10000 refers to num_sales < 0.1;",
+    "keywords": [
+      "num_sale",
+      "publisher_name",
+      "publisher",
+      "sale",
+      "list",
+      "number",
+      "refer"
+    ],
+    "values": {
+      "genre.id": "five",
+      "region.id": "0.1"
+    },
+    "num_selected_columns": 147,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "game",
+            "columns": [
+              "id"
+            ]
+          },
+          {
+            "name": "game_platform",
+            "columns": [
+              "game_publisher_id"
+            ]
+          },
+          {
+            "name": "game_publisher",
+            "columns": [
+              "game_id",
+              "id",
+              "publisher_id"
+            ]
+          },
+          {
+            "name": "publisher",
+            "columns": [
+              "id",
+              "publisher_name"
+            ]
+          },
+          {
+            "name": "region_sales",
+            "columns": [
+              "num_sales"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "game",
+            "columns": [
+              "game_name",
+              "genre_id",
+              "id"
+            ]
+          },
+          {
+            "name": "game_platform",
+            "columns": [
+              "game_publisher_id",
+              "id",
+              "release_year"
+            ]
+          },
+          {
+            "name": "game_publisher",
+            "columns": [
+              "game_id",
+              "id",
+              "publisher_id"
+            ]
+          },
+          {
+            "name": "genre",
+            "columns": [
+              "id"
+            ]
+          },
+          {
+            "name": "publisher",
+            "columns": [
+              "id",
+              "publisher_name"
+            ]
+          },
+          {
+            "name": "region_sales",
+            "columns": [
+              "game_platform_id",
+              "num_sales"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "game",
+            "columns": [
+              "game_name",
+              "genre_id",
+              "id"
+            ]
+          },
+          {
+            "name": "game_platform",
+            "columns": [
+              "game_publisher_id",
+              "id",
+              "platform_id",
+              "release_year"
+            ]
+          },
+          {
+            "name": "game_publisher",
+            "columns": [
+              "game_id",
+              "id",
+              "publisher_id"
+            ]
+          },
+          {
+            "name": "genre",
+            "columns": [
+              "genre_name",
+              "id"
+            ]
+          },
+          {
+            "name": "platform",
+            "columns": [
+              "id"
+            ]
+          },
+          {
+            "name": "publisher",
+            "columns": [
+              "id",
+              "publisher_name"
+            ]
+          },
+          {
+            "name": "region",
+            "columns": [
+              "id"
+            ]
+          },
+          {
+            "name": "region_sales",
+            "columns": [
+              "game_platform_id",
+              "num_sales",
+              "region_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 2,
+      "num_selected_col": 147,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_1",
+    "question": "What is the full address of the customers who, having received a timely response from the company, have dispute about that response?",
+    "evidence": "full address = address_1, address_2; received a timely response refers to Timely response? = 'Yes'; have dispute refers to \"Consumer disputed?\" = 'Yes';",
+    "keywords": [
+      "address_1",
+      "address_2",
+      "dispute",
+      "response",
+      "timely",
+      "receive",
+      "customer",
+      "address",
+      "consumer",
+      "company",
+      "refer"
+    ],
+    "values": {
+      "client.address_1": "= address_1"
+    },
+    "num_selected_columns": 462,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "client",
+            "columns": [
+              "address_1",
+              "address_2",
+              "client_id",
+              "email",
+              "phone",
+              "sex"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "client",
+            "columns": [
+              "address_1",
+              "address_2",
+              "city",
+              "client_id",
+              "email",
+              "first",
+              "last",
+              "phone",
+              "sex",
+              "social",
+              "state"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "client",
+            "columns": [
+              "address_1",
+              "address_2",
+              "city",
+              "client_id",
+              "day",
+              "email",
+              "first",
+              "last",
+              "middle",
+              "month",
+              "phone",
+              "sex",
+              "social",
+              "state",
+              "year"
+            ]
+          },
+          {
+            "name": "state",
+            "columns": [
+              "constraint",
+              "state"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 1,
+      "num_selected_col": 462,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_2",
+    "question": "How many movies did Wolfgang Reitherman direct?",
+    "evidence": "Wolfgang Reitherman refers director = 'Wolfgang Reitherman';",
+    "keywords": [
+      "reitherman",
+      "director",
+      "wolfgang",
+      "direct",
+      "movie"
+    ],
+    "values": {
+      "director.name": "Reitherman"
+    },
+    "num_selected_columns": 75,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "characters",
+            "columns": [
+              "movie_title"
+            ]
+          },
+          {
+            "name": "director",
+            "columns": [
+              "director",
+              "name"
+            ]
+          },
+          {
+            "name": "movies_total_gross",
+            "columns": [
+              "genre",
+              "inflation_adjusted_gross",
+              "movie_title",
+              "total_gross"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "characters",
+            "columns": [
+              "hero",
+              "movie_title"
+            ]
+          },
+          {
+            "name": "director",
+            "columns": [
+              "director",
+              "name"
+            ]
+          },
+          {
+            "name": "movies_total_gross",
+            "columns": [
+              "genre",
+              "inflation_adjusted_gross",
+              "movie_title",
+              "mpaa_rating",
+              "release_date",
+              "total_gross"
+            ]
+          },
+          {
+            "name": "revenue",
+            "columns": [
+              "total",
+              "year"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "characters",
+            "columns": [
+              "hero",
+              "movie_title",
+              "release_date",
+              "song",
+              "villian"
+            ]
+          },
+          {
+            "name": "director",
+            "columns": [
+              "director",
+              "name"
+            ]
+          },
+          {
+            "name": "movies_total_gross",
+            "columns": [
+              "genre",
+              "inflation_adjusted_gross",
+              "movie_title",
+              "mpaa_rating",
+              "release_date",
+              "total_gross"
+            ]
+          },
+          {
+            "name": "revenue",
+            "columns": [
+              "total",
+              "year"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 1,
+      "num_selected_col": 75,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_3",
+    "question": "How many legislators are not senator?",
+    "evidence": "not senator refers to class is null;",
+    "keywords": [
+      "senator",
+      "legislator",
+      "null",
+      "class"
+    ],
+    "values": {
+      "current.ballotpedia_id": "senator"
+    },
+    "num_selected_columns": 200,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "current",
+            "columns": [
+              "ballotpedia_id",
+              "last_name",
+              "middle_name",
+              "nickname_name",
+              "thomas_id",
+              "wikipedia_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "current",
+            "columns": [
+              "ballotpedia_id",
+              "birthday_bio",
+              "first_name",
+              "govtrack_id",
+              "last_name",
+              "middle_name",
+              "nickname_name",
+              "religion_bio",
+              "thomas_id",
+              "votesmart_id",
+              "wikipedia_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "current",
+            "columns": [
+              "ballotpedia_id",
+              "birthday_bio",
+              "fec_id",
+              "first_name",
+              "gender_bio",
+              "govtrack_id",
+              "house_history_id",
+              "last_name",
+              "middle_name",
+              "nickname_name",
+              "official_full_name",
+              "religion_bio",
+              "suffix_name",
+              "thomas_id",
+              "votesmart_id",
+              "wikipedia_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 1,
+      "num_selected_col": 200,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_4",
+    "question": "How many inspections done by Lisa Tillman ended up with the result of \"Out of Business\"?",
+    "evidence": "the result of \"Out of Business\" refers to results = 'Out of Business'",
+    "keywords": [
+      "business",
+      "inspection",
+      "result",
+      "refer",
+      "lisa",
+      "tillman"
+    ],
+    "values": {
+      "employee.city": "Lisa Tillman",
+      "establishment.ward": "Lisa",
+      "establishment.aka_name": "Tillman"
+    },
+    "num_selected_columns": 240,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "establishment",
+            "columns": [
+              "license_no"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "followup_to",
+              "inspection_id",
+              "license_no",
+              "results"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "category",
+              "description",
+              "point_id"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "employee",
+            "columns": [
+              "city",
+              "employee_id",
+              "phone",
+              "supervisor",
+              "title"
+            ]
+          },
+          {
+            "name": "establishment",
+            "columns": [
+              "license_no"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "followup_to",
+              "inspection_id",
+              "license_no",
+              "results"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "category",
+              "code",
+              "description",
+              "point_id"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "employee",
+            "columns": [
+              "address",
+              "city",
+              "employee_id",
+              "last_name",
+              "phone",
+              "state",
+              "supervisor",
+              "title"
+            ]
+          },
+          {
+            "name": "establishment",
+            "columns": [
+              "license_no"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "employee_id",
+              "followup_to",
+              "inspection_id",
+              "license_no",
+              "results"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "category",
+              "code",
+              "description",
+              "fine",
+              "point_id"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 3,
+      "num_selected_col": 240,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_5",
+    "question": "In which group of islands is Rinjani Mountain located?",
+    "evidence": "",
+    "keywords": [
+      "rinjani",
+      "island",
+      "mountain",
+      "locate"
+    ],
+    "values": {},
+    "num_selected_columns": 0,
+    "schemas": [],
+    "statistics": {
+      "num_retrieved_val": 0,
+      "num_selected_col": 0,
+      "num_schemas": 0
+    }
+  },
+  {
+    "question_id": "sample_6",
+    "question": "Give the character's ID of the character that said the paragraph \"O my poor brother! and so perchance may he be.\"",
+    "evidence": "\"O my poor brother! and so perchance may he be.\" refers to  PlainText = 'O my poor brother! and so perchance may he be.'",
+    "keywords": [
+      "plaintext",
+      "paragraph",
+      "character",
+      "perchance",
+      "poor",
+      "brother",
+      "refer",
+      "say"
+    ],
+    "values": {},
+    "num_selected_columns": 0,
+    "schemas": [],
+    "statistics": {
+      "num_retrieved_val": 0,
+      "num_selected_col": 0,
+      "num_schemas": 0
+    }
+  },
+  {
+    "question_id": "sample_7",
+    "question": "Calculate the average salary for employees who did inspection on License Re-Inspection.",
+    "evidence": "inspection on License Re-Inspection refers to inspection_type = 'License Re-Inspection'; average salary = avg(salary)",
+    "keywords": [
+      "avg(salary",
+      "salary",
+      "inspection_type",
+      "calculate",
+      "average",
+      "inspection",
+      "employee",
+      "refer"
+    ],
+    "values": {
+      "inspection.license_no": "License Re",
+      "establishment.license_no": "License",
+      "establishment.state": "Re",
+      "establishment.aka_name": "'"
+    },
+    "num_selected_columns": 320,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "employee",
+            "columns": [
+              "employee_id",
+              "salary"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "employee_id",
+              "followup_to",
+              "inspection_id",
+              "inspection_type"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "description",
+              "point_id"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "employee",
+            "columns": [
+              "employee_id",
+              "salary",
+              "supervisor"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "employee_id",
+              "followup_to",
+              "inspection_date",
+              "inspection_id",
+              "inspection_type",
+              "results"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "category",
+              "code",
+              "description",
+              "point_id"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "employee",
+            "columns": [
+              "employee_id",
+              "salary",
+              "state",
+              "supervisor",
+              "title"
+            ]
+          },
+          {
+            "name": "establishment",
+            "columns": [
+              "license_no"
+            ]
+          },
+          {
+            "name": "inspection",
+            "columns": [
+              "employee_id",
+              "followup_to",
+              "inspection_date",
+              "inspection_id",
+              "inspection_type",
+              "license_no",
+              "results"
+            ]
+          },
+          {
+            "name": "inspection_point",
+            "columns": [
+              "category",
+              "code",
+              "description",
+              "fine",
+              "point_id",
+              "point_level"
+            ]
+          },
+          {
+            "name": "violation",
+            "columns": [
+              "inspection_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 4,
+      "num_selected_col": 320,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_8",
+    "question": "Give the full name of the actor with the highest rental rate.",
+    "evidence": "full name refers to first_name, last_name; the highest rental rate refers to max(rental_rate)",
+    "keywords": [
+      "max(rental_rate",
+      "rental",
+      "actor",
+      "rate",
+      "first_name",
+      "last_name"
+    ],
+    "values": {
+      "film_text.film_id": "last_name"
+    },
+    "num_selected_columns": 18,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "film_text",
+            "columns": [
+              "description",
+              "film_id",
+              "title"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 1,
+      "num_selected_col": 18,
+      "num_schemas": 1
+    }
+  },
+  {
+    "question_id": "sample_9",
+    "question": "From which branch does the sales representative employee who made the most sales in 2005? Please indicates its full address and phone number.",
+    "evidence": "orderDate between '2005-01-01' and '2005-12-31'; full address = addressLine1+addressLine2;",
+    "keywords": [
+      "addressline1+addressline2",
+      "branch",
+      "sale",
+      "address",
+      "orderdate",
+      "representative",
+      "employee",
+      "number"
+    ],
+    "values": {
+      "orders.orderdate": "between '2005",
+      "offices.addressline2": "addressLine1+addressLine2",
+      "orders.customernumber": "12",
+      "orders.ordernumber": "31"
+    },
+    "num_selected_columns": 432,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "offices",
+            "columns": [
+              "addressline1",
+              "addressline2",
+              "officecode",
+              "phone",
+              "state"
+            ]
+          },
+          {
+            "name": "orders",
+            "columns": [
+              "ordernumber",
+              "status"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "customers",
+            "columns": [
+              "addressline1",
+              "addressline2",
+              "customernumber",
+              "phone"
+            ]
+          },
+          {
+            "name": "offices",
+            "columns": [
+              "addressline1",
+              "addressline2",
+              "officecode",
+              "phone",
+              "state"
+            ]
+          },
+          {
+            "name": "orders",
+            "columns": [
+              "customernumber",
+              "orderdate",
+              "ordernumber",
+              "status"
+            ]
+          }
+        ]
+      },
+      {
+        "tables": [
+          {
+            "name": "customers",
+            "columns": [
+              "addressline1",
+              "addressline2",
+              "customernumber",
+              "phone",
+              "salesrepemployeenumber",
+              "state"
+            ]
+          },
+          {
+            "name": "employees",
+            "columns": [
+              "email",
+              "employeenumber",
+              "reportsto"
+            ]
+          },
+          {
+            "name": "offices",
+            "columns": [
+              "addressline1",
+              "addressline2",
+              "city",
+              "officecode",
+              "phone",
+              "postalcode",
+              "state"
+            ]
+          },
+          {
+            "name": "orders",
+            "columns": [
+              "customernumber",
+              "orderdate",
+              "ordernumber",
+              "status"
+            ]
+          }
+        ]
+      }
+    ],
+    "statistics": {
+      "num_retrieved_val": 4,
+      "num_selected_col": 432,
+      "num_schemas": 3
+    }
+  },
+  {
+    "question_id": "sample_10",
+    "question": "Provide the name of the business which had the most number of inspections because of complaint.",
+    "evidence": "the most number of inspections because of complaint refers to type = 'Complaint' where MAX(business_id);",
+    "keywords": [
+      "max(business_id",
+      "complaint",
+      "inspection",
+      "refer",
+      "number",
+      "business",
+      "type"
+    ],
+    "values": {},
+    "num_selected_columns": 0,
+    "schemas": [],
+    "statistics": {
+      "num_retrieved_val": 0,
+      "num_selected_col": 0,
+      "num_schemas": 0
+    }
+  }
+]
