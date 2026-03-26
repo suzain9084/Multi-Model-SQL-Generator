@@ -1,48 +1,39 @@
-from typing import List, Tuple, Dict, Set, Optional
+from typing import Dict, List, Optional
 import torch
-import torch.nn.functional as F
-from sentence_transformers import SentenceTransformer
-from transformers import RobertaTokenizer
-import re
-import spacy
 
-class ValueRetriever:    
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', k: int = 3):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from service.schema_filter.model_resources import get_shared_resources, SharedNLPResources
+
+class ValueRetriever:
+    def __init__(
+        self,
+        model_name: str = "all-MiniLM-L6-v2",
+        k: int = 3,
+        resources: Optional[SharedNLPResources] = None,
+    ):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.k = k
+        self.resources = resources or get_shared_resources()
+
         try:
-            self.encoder = SentenceTransformer(model_name)
-            self.encoder = self.encoder.to(self.device)
+            self.encoder = self.resources.get_encoder(model_name=model_name, device=self.device)
         except Exception as e:
             raise RuntimeError(f"Failed to load sentence transformer model '{model_name}': {e}")
-        
+
         try:
-            self.tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
-        except Exception as e:
-            print(f"Warning: Could not load RoBERTa tokenizer: {e}")
-            self.tokenizer = None
-        try:
-            self.nlp = spacy.load("en_core_web_sm")
+            self.nlp = self.resources.get_spacy("en_core_web_sm")
         except Exception as e:
             print("spaCy model not found. Run: python -m spacy download en_core_web_sm")
             self.nlp = None
-    
-    
-    def get_embedding(self, text: str ) -> torch.Tensor:        
-        embedding = self.encoder.encode([text], convert_to_tensor=True, device=self.device)[0]        
-        return embedding
-    
-    def cosine_similarity(self, vec1: torch.Tensor, vec2: torch.Tensor) -> float:
-        if vec1.dim() > 1:
-            vec1 = vec1.squeeze()
-        if vec2.dim() > 1:
-            vec2 = vec2.squeeze()
-        
-        vec1_norm = F.normalize(vec1, p=2, dim=0)
-        vec2_norm = F.normalize(vec2, p=2, dim=0)
-        
-        similarity = torch.dot(vec1_norm, vec2_norm).item()
-        return similarity
+
+    def get_embeddings(self, texts: List[str]) -> torch.Tensor:
+        if not texts:
+            return torch.empty(0)
+        return self.encoder.encode(
+            texts,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+            device=self.device,
+        )
     
     def extract_values_from_question(self, cleanQuestion: str) -> List[Dict]:
         values = []
@@ -78,36 +69,29 @@ class ValueRetriever:
         return values
 
 
-    def retrieve_values(self, cleanQuestion: str, selected_col: Dict):
+    def retrieve_values(self, cleanQuestion: str, selected_col: List[Dict]):
         values = self.extract_values_from_question(cleanQuestion)
         results = {}
+        if not values or not selected_col:
+            return results
 
-        sample_embeddings = []
+        column_metas = []
         for sample in selected_col:
             col = sample["column"]
             tab = sample["table"]
-            column_meta = f"{tab}.{col}"
-            emb = self.get_embedding(column_meta)
-            sample_embeddings.append((column_meta, emb))
+            column_metas.append(f"{tab}.{col}")
 
-        for value in values:
-            value_text = f"{value['type']}-{value['text']}"
-            value_embedding = self.get_embedding(value_text)
+        value_payloads = [(f"{value['type']}-{value['text']}", value["text"]) for value in values]
 
-            best_col = None
-            best_sim = 0.0
+        column_embeddings = self.get_embeddings(column_metas)
+        value_embeddings = self.get_embeddings([item[0] for item in value_payloads])
+        similarity = torch.matmul(value_embeddings, column_embeddings.T)
 
-            for column_meta, column_embedding in sample_embeddings:
-                sim = self.cosine_similarity(
-                    value_embedding,
-                    column_embedding
-                )
-
-                if sim > best_sim:
-                    best_sim = sim
-                    best_col = column_meta
-
+        best_sims, best_idx = torch.max(similarity, dim=1)
+        for i, (_, raw_value_text) in enumerate(value_payloads):
+            best_sim = float(best_sims[i].item())
+            best_col = column_metas[int(best_idx[i].item())]
             if best_col and best_sim >= 0.2:
-                results[best_col] = value_text.split("-")[1]
+                results[best_col] = raw_value_text
 
         return results

@@ -1,14 +1,20 @@
-from typing import List, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 import torch
-import torch.nn.functional as F
-from sentence_transformers import SentenceTransformer
+
+from service.schema_filter.model_resources import get_shared_resources, SharedNLPResources
 
 
 class ColumnSelector:
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", k: int = 5):
+    def __init__(
+        self,
+        model_name: str = "all-MiniLM-L6-v2",
+        k: int = 5,
+        resources: Optional[SharedNLPResources] = None,
+    ):
         self.k = k
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.encoder = SentenceTransformer(model_name).to(self.device)
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.resources = resources or get_shared_resources()
+        self.encoder = self.resources.get_encoder(model_name=model_name, device=self.device)
 
     def embed(self, text: str) -> torch.Tensor:
         return self.encoder.encode(
@@ -18,17 +24,15 @@ class ColumnSelector:
             device=self.device,
         )
 
-    def compute_score(
-        self,
-        v_key: torch.Tensor,
-        v_col: torch.Tensor,
-        v_tab: torch.Tensor,
-        v_qe: torch.Tensor,
-    ) -> float:
-        return (
-            F.cosine_similarity(v_key, v_col, dim=0)
-            * F.cosine_similarity(v_qe, v_tab, dim=0)
-        ).item()
+    def embed_many(self, texts: List[str]) -> torch.Tensor:
+        if not texts:
+            return torch.empty(0)
+        return self.encoder.encode(
+            texts,
+            convert_to_tensor=True,
+            normalize_embeddings=True,
+            device=self.device,
+        )
 
     def select_columns_iterative(
         self,
@@ -36,34 +40,43 @@ class ColumnSelector:
         keywords: List[str],
         clean_question: str
     ):
+        if not schema.get("tables"):
+            return []
+
+        unique_keywords = list(dict.fromkeys(keywords or []))
+        if not unique_keywords:
+            unique_keywords = [clean_question]
+
+        table_names = list(schema["tables"].keys())
+        column_pairs: List[Tuple[str, str]] = []
+        for table, cols in schema["tables"].items():
+            column_pairs.extend((table, col) for col in cols)
+
+        if not column_pairs:
+            return []
 
         v_qe = self.embed(clean_question)
+        keyword_embeddings = self.embed_many(unique_keywords)
+        table_embeddings = self.embed_many(table_names)
+        column_embeddings = self.embed_many([col for _, col in column_pairs])
 
-        keyword_embeddings = {
-            kw: self.embed(kw) for kw in keywords
-        }
+        table_sim = torch.matmul(table_embeddings, v_qe)
+        table_idx = {table: idx for idx, table in enumerate(table_names)}
+        col_table_sim = torch.stack([table_sim[table_idx[table]] for table, _ in column_pairs])
 
-        table_embeddings = {}
-        column_embeddings = {}
-
-        for table, cols in schema["tables"].items():
-            table_embeddings[table] = self.embed(table)
-            for col in cols:
-                column_embeddings[(table, col)] = self.embed(col)
+        # Embeddings are normalized; matrix multiply is cosine similarity.
+        kw_col_sim = torch.matmul(keyword_embeddings, column_embeddings.T)
+        combined_scores = kw_col_sim * col_table_sim.unsqueeze(0)
 
         scored_results = []
-
-        for kw, v_key in keyword_embeddings.items():
-            for (table, col), v_col in column_embeddings.items():
-                v_tab = table_embeddings[table]
-
-                score = self.compute_score(v_key, v_col, v_tab, v_qe)
-
-                scored_results.append({
-                    "keyword": kw,
-                    "table": table,
-                    "column": col,
-                    "score": score
-                })
-
+        for kw_idx, keyword in enumerate(unique_keywords):
+            for col_idx, (table, col) in enumerate(column_pairs):
+                scored_results.append(
+                    {
+                        "keyword": keyword,
+                        "table": table,
+                        "column": col,
+                        "score": float(combined_scores[kw_idx, col_idx].item()),
+                    }
+                )
         return scored_results

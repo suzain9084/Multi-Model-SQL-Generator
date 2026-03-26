@@ -1,16 +1,23 @@
 from typing import List, Optional, Tuple
 import torch
 import torch.nn.functional as F
-from sentence_transformers import SentenceTransformer
-import spacy
+
+from service.schema_filter.model_resources import get_shared_resources, SharedNLPResources
 
 class KeywordExtractor:
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2", device: Optional[str] = None, percent: int = 0.8):
+    def __init__(
+        self,
+        model_name: str = "all-MiniLM-L6-v2",
+        device: Optional[str] = None,
+        percent: int = 0.8,
+        resources: Optional[SharedNLPResources] = None,
+    ):
         self.percent = percent
-        self.nlp = spacy.load("en_core_web_sm")
+        self.resources = resources or get_shared_resources()
+        self.nlp = self.resources.get_spacy("en_core_web_sm")
 
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = SentenceTransformer(model_name, device=self.device)
+        self.model = self.resources.get_encoder(model_name=model_name, device=self.device)
 
     def cleanQuestion(self, question: str, evidence: Optional[str] = None) -> str:
         text = question

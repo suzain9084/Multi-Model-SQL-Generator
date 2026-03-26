@@ -6,6 +6,7 @@ from service.schema_filter.keyword_extractor import KeywordExtractor
 from service.schema_filter.column_selector import ColumnSelector
 from service.schema_filter.value_retriever import ValueRetriever
 from service.schema_filter.multi_path_retriever import MultiPathSchemaRetriever
+from service.schema_filter.model_resources import get_shared_resources
 
 class SchemaFilterPipeline:
     def __init__(
@@ -13,10 +14,11 @@ class SchemaFilterPipeline:
         top_k_retrieval: int = 20,
         num_schemas: int = 2
     ):
+        shared_resources = get_shared_resources()
         self.schema_parser = SchemaParser()
-        self.keyword_extractor = KeywordExtractor()
-        self.column_selector = ColumnSelector()
-        self.value_retriever = ValueRetriever()
+        self.keyword_extractor = KeywordExtractor(resources=shared_resources)
+        self.column_selector = ColumnSelector(resources=shared_resources)
+        self.value_retriever = ValueRetriever(resources=shared_resources)
         self.multi_path_retriever = MultiPathSchemaRetriever()
         self.top_k_retrieval = top_k_retrieval
         self.num_schemas = num_schemas
