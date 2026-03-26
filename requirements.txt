@@ -1,20 +1,8 @@
-# Requirements for XiYan-SQL Schema Filter Pipeline
-# Section III-B implementation
-
-# Core dependencies
-numpy>=1.21.0
-
-# PyTorch for tensor operations and TF-IDF
-torch>=1.13.0
-
-# NLP and embeddings
-sentence-transformers>=2.2.0
-transformers>=4.21.0  # For RoBERTa tokenizer
-scikit-learn>=1.0.0  # For keyword clustering
-
-# Dataset loading
-datasets>=2.14.0
-huggingface-hub>=0.16.0
-
-# Note: To use spaCy, you need to download the English model:
-# python -m spacy download en_core_web_sm
+numpy==1.21.0
+torch==1.13.0
+sentence-transformers==2.2.0
+transformers==4.21.0
+scikit-learn==1.0.0
+datasets==2.14.0
+huggingface-hub==0.16.0
+sqlglot==30.0.2

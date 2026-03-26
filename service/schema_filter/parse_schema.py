@@ -1,5 +1,7 @@
-import re
 from typing import Dict, List, Tuple
+import sqlglot
+from sqlglot import exp
+
 
 class SchemaParser:
     def __init__(self):
@@ -7,93 +9,75 @@ class SchemaParser:
 
     def parse_tables(self, schema_sql: str) -> Dict[str, List[str]]:
         tables = {}
-        create_table_blocks = re.findall(
-            r"CREATE TABLE\s+(\w+)\s*\((.*?)\);",
-            schema_sql,
-            re.S | re.I,
-        )
+        statements = sqlglot.parse(schema_sql)
 
-        for table_name, body in create_table_blocks:
-            columns = []
-            lines = body.split("\n")
+        for stmt in statements:
+            if isinstance(stmt, exp.Create) and stmt.this:
+                table_name = stmt.this.name.lower()
 
-            for line in lines:
-                line = line.strip().lower()
+                columns = []
+                for col in stmt.find_all(exp.ColumnDef):
+                    columns.append(col.name.lower())
 
-                if (
-                    line.startswith("primary key")
-                    or line.startswith("foreign key")
-                    or line.startswith("unique")
-                    or line.startswith("constraint")
-                    or line == ""
-                ):
-                    continue
-
-                col_match = re.match(r"(\w+)\s+", line)
-                if col_match:
-                    columns.append(col_match.group(1))
-
-            tables[table_name.lower()] = columns
-
+                tables[table_name] = columns
         return tables
 
     def extract_primary_keys(self, schema_sql: str) -> Dict[str, str]:
         pk_map = {}
+        statements = sqlglot.parse(schema_sql)
 
-        table_blocks = re.findall(
-            r"CREATE TABLE\s+(\w+)\s*\((.*?)\);",
-            schema_sql,
-            re.S | re.I,
-        )
+        for stmt in statements:
+            if isinstance(stmt, exp.Create) and stmt.this:
+                table_name = stmt.this.name.lower()
 
-        for table, body in table_blocks:
-            body = body.lower()
+                for col in stmt.find_all(exp.ColumnDef):
+                    constraints = col.args.get("constraints") or []
+                    for c in constraints:
+                        if isinstance(c, exp.PrimaryKeyColumnConstraint):
+                            pk_map[table_name] = col.name.lower()
 
-            pk_col = None
-
-            lines = [l.strip() for l in body.split("\n") if l.strip()]
-
-            for i in range(len(lines) - 1):
-                if "primary key" in lines[i + 1]:
-                    col_match = re.match(r"(\w+)\s+", lines[i])
-                    if col_match:
-                        pk_col = col_match.group(1)
-                        break
-
-            if pk_col is None:
-                table_pk = re.search(
-                    r"primary key\s*\((\w+)\)",
-                    body,
-                    re.I,
-                )
-                if table_pk:
-                    pk_col = table_pk.group(1)
-
-            if pk_col:
-                pk_map[table.lower()] = pk_col.lower()
-
+                for constraint in stmt.find_all(exp.PrimaryKey):
+                    cols = constraint.expressions
+                    if cols:
+                        pk_map[table_name] = cols[0].name.lower()
         return pk_map
 
     def extract_foreign_keys(self, schema_sql: str) -> List[Tuple[str, str]]:
         foreign_keys: List[Tuple[str, str]] = []
+        statements = sqlglot.parse(schema_sql)
 
-        table_blocks = re.findall(
-            r"CREATE TABLE\s+(\w+)\s*\((.*?)\);",
-            schema_sql,
-            re.S | re.I,
-        )
+        for stmt in statements:
+            if isinstance(stmt, exp.Create) and stmt.this:
+                table_name = stmt.this.name.lower()
 
-        for table, body in table_blocks:
-            matches = re.findall(
-                r"foreign key\s*\((\w+)\)\s*references\s*(\w+)\s*\((\w+)\)",
-                body,
-                re.I,
-            )
+                for fk in stmt.find_all(exp.ForeignKey):
+                    local_cols = fk.expressions
+                    ref = fk.args.get("reference")
 
-            for local_col, ref_table, ref_col in matches:
-                fk = f"{table.lower()}.{local_col.lower()}"
-                ref = f"{ref_table.lower()}.{ref_col.lower()}"
-                foreign_keys.append((fk, ref))
+                    if ref:
+                        ref_table = ref.this.name.lower()
+                        ref_cols = ref.expressions
+
+                        for lc, rc in zip(local_cols, ref_cols):
+                            local = f"{table_name}.{lc.name.lower()}"
+                            remote = f"{ref_table}.{rc.name.lower()}"
+                            foreign_keys.append((local, remote))
+
+                for col in stmt.find_all(exp.ColumnDef):
+                    constraints = col.args.get("constraints") or []
+
+                    for c in constraints:
+                        if isinstance(c, exp.ForeignKey):
+                            ref = c.args.get("reference")
+
+                            if ref:
+                                ref_table = ref.this.name.lower()
+                                ref_col = ref.expressions[0].name.lower()
+
+                                local = f"{table_name}.{col.name.lower()}"
+                                remote = f"{ref_table}.{ref_col}"
+
+                                foreign_keys.append((local, remote))
 
         return foreign_keys
 

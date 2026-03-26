@@ -13,151 +13,14 @@
       "refer"
     ],
     "values": {
-      "genre.id": "five",
-      "region.id": "0.1"
+      ".num_sales": "0.1"
     },
-    "num_selected_columns": 147,
+    "num_selected_columns": 21,
     "schemas": [
       {
         "tables": [
           {
-            "name": "game",
-            "columns": [
-              "id"
-            ]
-          },
-          {
-            "name": "game_platform",
-            "columns": [
-              "game_publisher_id"
-            ]
-          },
-          {
-            "name": "game_publisher",
-            "columns": [
-              "game_id",
-              "id",
-              "publisher_id"
-            ]
-          },
-          {
-            "name": "publisher",
-            "columns": [
-              "id",
-              "publisher_name"
-            ]
-          },
-          {
-            "name": "region_sales",
-            "columns": [
-              "num_sales"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "game",
-            "columns": [
-              "game_name",
-              "genre_id",
-              "id"
-            ]
-          },
-          {
-            "name": "game_platform",
-            "columns": [
-              "game_publisher_id",
-              "id",
-              "release_year"
-            ]
-          },
-          {
-            "name": "game_publisher",
-            "columns": [
-              "game_id",
-              "id",
-              "publisher_id"
-            ]
-          },
-          {
-            "name": "genre",
-            "columns": [
-              "id"
-            ]
-          },
-          {
-            "name": "publisher",
-            "columns": [
-              "id",
-              "publisher_name"
-            ]
-          },
-          {
-            "name": "region_sales",
-            "columns": [
-              "game_platform_id",
-              "num_sales"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "game",
-            "columns": [
-              "game_name",
-              "genre_id",
-              "id"
-            ]
-          },
-          {
-            "name": "game_platform",
-            "columns": [
-              "game_publisher_id",
-              "id",
-              "platform_id",
-              "release_year"
-            ]
-          },
-          {
-            "name": "game_publisher",
-            "columns": [
-              "game_id",
-              "id",
-              "publisher_id"
-            ]
-          },
-          {
-            "name": "genre",
-            "columns": [
-              "genre_name",
-              "id"
-            ]
-          },
-          {
-            "name": "platform",
-            "columns": [
-              "id"
-            ]
-          },
-          {
-            "name": "publisher",
-            "columns": [
-              "id",
-              "publisher_name"
-            ]
-          },
-          {
-            "name": "region",
-            "columns": [
-              "id"
-            ]
-          },
-          {
-            "name": "region_sales",
+            "name": "",
             "columns": [
               "game_platform_id",
               "num_sales",
@@ -168,9 +31,9 @@
       }
     ],
     "statistics": {
-      "num_retrieved_val": 2,
-      "num_selected_col": 147,
-      "num_schemas": 3
+      "num_retrieved_val": 1,
+      "num_selected_col": 21,
+      "num_schemas": 1
     }
   },
   {
@@ -191,72 +54,21 @@
       "refer"
     ],
     "values": {
-      "client.address_1": "= address_1"
+      ".district_id": "= address_1"
     },
-    "num_selected_columns": 462,
+    "num_selected_columns": 55,
     "schemas": [
       {
         "tables": [
           {
-            "name": "client",
+            "name": "",
             "columns": [
-              "address_1",
-              "address_2",
-              "client_id",
-              "email",
-              "phone",
-              "sex"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "client",
-            "columns": [
-              "address_1",
-              "address_2",
-              "city",
-              "client_id",
-              "email",
-              "first",
-              "last",
-              "phone",
-              "sex",
-              "social",
-              "state"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "client",
-            "columns": [
-              "address_1",
-              "address_2",
-              "city",
-              "client_id",
-              "day",
-              "email",
-              "first",
-              "last",
-              "middle",
-              "month",
-              "phone",
-              "sex",
-              "social",
-              "state",
-              "year"
-            ]
-          },
-          {
-            "name": "state",
-            "columns": [
-              "constraint",
-              "state"
+              "complaint id",
+              "date",
+              "district_id",
+              "product",
+              "reviews",
+              "stars"
             ]
           }
         ]
@@ -264,8 +76,8 @@
     ],
     "statistics": {
       "num_retrieved_val": 1,
-      "num_selected_col": 462,
-      "num_schemas": 3
+      "num_selected_col": 55,
+      "num_schemas": 1
     }
   },
   {
@@ -280,116 +92,15 @@
       "movie"
     ],
     "values": {
-      "director.name": "Reitherman"
+      ".voice-actor": "Wolfgang",
+      ".movie": "Reitherman"
     },
-    "num_selected_columns": 75,
-    "schemas": [
-      {
-        "tables": [
-          {
-            "name": "characters",
-            "columns": [
-              "movie_title"
-            ]
-          },
-          {
-            "name": "director",
-            "columns": [
-              "director",
-              "name"
-            ]
-          },
-          {
-            "name": "movies_total_gross",
-            "columns": [
-              "genre",
-              "inflation_adjusted_gross",
-              "movie_title",
-              "total_gross"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "characters",
-            "columns": [
-              "hero",
-              "movie_title"
-            ]
-          },
-          {
-            "name": "director",
-            "columns": [
-              "director",
-              "name"
-            ]
-          },
-          {
-            "name": "movies_total_gross",
-            "columns": [
-              "genre",
-              "inflation_adjusted_gross",
-              "movie_title",
-              "mpaa_rating",
-              "release_date",
-              "total_gross"
-            ]
-          },
-          {
-            "name": "revenue",
-            "columns": [
-              "total",
-              "year"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "characters",
-            "columns": [
-              "hero",
-              "movie_title",
-              "release_date",
-              "song",
-              "villian"
-            ]
-          },
-          {
-            "name": "director",
-            "columns": [
-              "director",
-              "name"
-            ]
-          },
-          {
-            "name": "movies_total_gross",
-            "columns": [
-              "genre",
-              "inflation_adjusted_gross",
-              "movie_title",
-              "mpaa_rating",
-              "release_date",
-              "total_gross"
-            ]
-          },
-          {
-            "name": "revenue",
-            "columns": [
-              "total",
-              "year"
-            ]
-          }
-        ]
-      }
-    ],
+    "num_selected_columns": 15,
+    "schemas": [],
     "statistics": {
-      "num_retrieved_val": 1,
-      "num_selected_col": 75,
-      "num_schemas": 3
+      "num_retrieved_val": 2,
+      "num_selected_col": 15,
+      "num_schemas": 0
     }
   },
   {
@@ -403,21 +114,21 @@
       "class"
     ],
     "values": {
-      "current.ballotpedia_id": "senator"
+      ".govtrack": "senator"
     },
-    "num_selected_columns": 200,
+    "num_selected_columns": 44,
     "schemas": [
       {
         "tables": [
           {
-            "name": "current",
+            "name": "",
             "columns": [
-              "ballotpedia_id",
-              "last_name",
-              "middle_name",
-              "nickname_name",
-              "thomas_id",
-              "wikipedia_id"
+              "bioguide",
+              "facebook",
+              "govtrack",
+              "thomas",
+              "twitter",
+              "youtube"
             ]
           }
         ]
@@ -425,44 +136,19 @@
       {
         "tables": [
           {
-            "name": "current",
+            "name": "",
             "columns": [
-              "ballotpedia_id",
-              "birthday_bio",
-              "first_name",
-              "govtrack_id",
-              "last_name",
-              "middle_name",
-              "nickname_name",
-              "religion_bio",
-              "thomas_id",
-              "votesmart_id",
-              "wikipedia_id"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "current",
-            "columns": [
-              "ballotpedia_id",
-              "birthday_bio",
-              "fec_id",
-              "first_name",
-              "gender_bio",
-              "govtrack_id",
-              "house_history_id",
-              "last_name",
-              "middle_name",
-              "nickname_name",
-              "official_full_name",
-              "religion_bio",
-              "suffix_name",
-              "thomas_id",
-              "votesmart_id",
-              "wikipedia_id"
+              "bioguide",
+              "facebook",
+              "facebook_id",
+              "govtrack",
+              "instagram",
+              "instagram_id",
+              "thomas",
+              "twitter",
+              "twitter_id",
+              "youtube",
+              "youtube_id"
             ]
           }
         ]
@@ -470,8 +156,8 @@
     ],
     "statistics": {
       "num_retrieved_val": 1,
-      "num_selected_col": 200,
-      "num_schemas": 3
+      "num_selected_col": 44,
+      "num_schemas": 2
     }
   },
   {
@@ -486,144 +172,27 @@
       "lisa",
       "tillman"
     ],
-    "values": {
-      "employee.city": "Lisa Tillman",
-      "establishment.ward": "Lisa",
-      "establishment.aka_name": "Tillman"
-    },
-    "num_selected_columns": 240,
+    "values": {},
+    "num_selected_columns": 24,
     "schemas": [
       {
         "tables": [
           {
-            "name": "establishment",
+            "name": "",
             "columns": [
-              "license_no"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "followup_to",
-              "inspection_id",
-              "license_no",
-              "results"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "category",
-              "description",
-              "point_id"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "employee",
-            "columns": [
-              "city",
-              "employee_id",
-              "phone",
-              "supervisor",
-              "title"
-            ]
-          },
-          {
-            "name": "establishment",
-            "columns": [
-              "license_no"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "followup_to",
-              "inspection_id",
-              "license_no",
-              "results"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "category",
-              "code",
-              "description",
-              "point_id"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "employee",
-            "columns": [
-              "address",
-              "city",
-              "employee_id",
-              "last_name",
-              "phone",
-              "state",
-              "supervisor",
-              "title"
-            ]
-          },
-          {
-            "name": "establishment",
-            "columns": [
-              "license_no"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "employee_id",
-              "followup_to",
-              "inspection_id",
-              "license_no",
-              "results"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "category",
-              "code",
-              "description",
               "fine",
+              "inspection_id",
+              "inspector_comment",
               "point_id"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
             ]
           }
         ]
       }
     ],
     "statistics": {
-      "num_retrieved_val": 3,
-      "num_selected_col": 240,
-      "num_schemas": 3
+      "num_retrieved_val": 0,
+      "num_selected_col": 24,
+      "num_schemas": 1
     }
   },
   {
@@ -636,13 +205,28 @@
       "mountain",
       "locate"
     ],
-    "values": {},
-    "num_selected_columns": 0,
-    "schemas": [],
+    "values": {
+      ".country": "Mountain"
+    },
+    "num_selected_columns": 8,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "",
+            "columns": [
+              "country",
+              "name",
+              "target"
+            ]
+          }
+        ]
+      }
+    ],
     "statistics": {
-      "num_retrieved_val": 0,
-      "num_selected_col": 0,
-      "num_schemas": 0
+      "num_retrieved_val": 1,
+      "num_selected_col": 8,
+      "num_schemas": 1
     }
   },
   {
@@ -660,12 +244,27 @@
       "say"
     ],
     "values": {},
-    "num_selected_columns": 0,
-    "schemas": [],
+    "num_selected_columns": 40,
+    "schemas": [
+      {
+        "tables": [
+          {
+            "name": "",
+            "columns": [
+              "date",
+              "genretype",
+              "id",
+              "longtitle",
+              "title"
+            ]
+          }
+        ]
+      }
+    ],
     "statistics": {
       "num_retrieved_val": 0,
-      "num_selected_col": 0,
-      "num_schemas": 0
+      "num_selected_col": 40,
+      "num_schemas": 1
     }
   },
   {
@@ -683,138 +282,30 @@
       "refer"
     ],
     "values": {
-      "inspection.license_no": "License Re",
-      "establishment.license_no": "License",
-      "establishment.state": "Re",
-      "establishment.aka_name": "'"
+      ".inspection_id": "License Re",
+      ".inspector_comment": "Re",
+      ".fine": "'"
     },
-    "num_selected_columns": 320,
+    "num_selected_columns": 32,
     "schemas": [
       {
         "tables": [
           {
-            "name": "employee",
+            "name": "",
             "columns": [
-              "employee_id",
-              "salary"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "employee_id",
-              "followup_to",
-              "inspection_id",
-              "inspection_type"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "description",
-              "point_id"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "employee",
-            "columns": [
-              "employee_id",
-              "salary",
-              "supervisor"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "employee_id",
-              "followup_to",
-              "inspection_date",
-              "inspection_id",
-              "inspection_type",
-              "results"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "category",
-              "code",
-              "description",
-              "point_id"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "employee",
-            "columns": [
-              "employee_id",
-              "salary",
-              "state",
-              "supervisor",
-              "title"
-            ]
-          },
-          {
-            "name": "establishment",
-            "columns": [
-              "license_no"
-            ]
-          },
-          {
-            "name": "inspection",
-            "columns": [
-              "employee_id",
-              "followup_to",
-              "inspection_date",
-              "inspection_id",
-              "inspection_type",
-              "license_no",
-              "results"
-            ]
-          },
-          {
-            "name": "inspection_point",
-            "columns": [
-              "category",
-              "code",
-              "description",
               "fine",
-              "point_id",
-              "point_level"
-            ]
-          },
-          {
-            "name": "violation",
-            "columns": [
-              "inspection_id"
+              "inspection_id",
+              "inspector_comment",
+              "point_id"
             ]
           }
         ]
       }
     ],
     "statistics": {
-      "num_retrieved_val": 4,
-      "num_selected_col": 320,
-      "num_schemas": 3
+      "num_retrieved_val": 3,
+      "num_selected_col": 32,
+      "num_schemas": 1
     }
   },
   {
@@ -830,18 +321,20 @@
       "last_name"
     ],
     "values": {
-      "film_text.film_id": "last_name"
+      ".last_update": "last_name"
     },
-    "num_selected_columns": 18,
+    "num_selected_columns": 24,
     "schemas": [
       {
         "tables": [
           {
-            "name": "film_text",
+            "name": "",
             "columns": [
-              "description",
+              "address_id",
               "film_id",
-              "title"
+              "last_update",
+              "manager_staff_id",
+              "store_id"
             ]
           }
         ]
@@ -849,7 +342,7 @@
     ],
     "statistics": {
       "num_retrieved_val": 1,
-      "num_selected_col": 18,
+      "num_selected_col": 24,
       "num_schemas": 1
     }
   },
@@ -868,137 +361,30 @@
       "number"
     ],
     "values": {
-      "orders.orderdate": "between '2005",
-      "offices.addressline2": "addressLine1+addressLine2",
-      "orders.customernumber": "12",
-      "orders.ordernumber": "31"
+      ".ordernumber": "31",
+      ".orderlinenumber": "addressLine1+addressLine2"
     },
-    "num_selected_columns": 432,
+    "num_selected_columns": 40,
     "schemas": [
       {
         "tables": [
           {
-            "name": "offices",
+            "name": "",
             "columns": [
-              "addressline1",
-              "addressline2",
-              "officecode",
-              "phone",
-              "state"
-            ]
-          },
-          {
-            "name": "orders",
-            "columns": [
+              "orderlinenumber",
               "ordernumber",
-              "status"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "customers",
-            "columns": [
-              "addressline1",
-              "addressline2",
-              "customernumber",
-              "phone"
-            ]
-          },
-          {
-            "name": "offices",
-            "columns": [
-              "addressline1",
-              "addressline2",
-              "officecode",
-              "phone",
-              "state"
-            ]
-          },
-          {
-            "name": "orders",
-            "columns": [
-              "customernumber",
-              "orderdate",
-              "ordernumber",
-              "status"
-            ]
-          }
-        ]
-      },
-      {
-        "tables": [
-          {
-            "name": "customers",
-            "columns": [
-              "addressline1",
-              "addressline2",
-              "customernumber",
-              "phone",
-              "salesrepemployeenumber",
-              "state"
-            ]
-          },
-          {
-            "name": "employees",
-            "columns": [
-              "email",
-              "employeenumber",
-              "reportsto"
-            ]
-          },
-          {
-            "name": "offices",
-            "columns": [
-              "addressline1",
-              "addressline2",
-              "city",
-              "officecode",
-              "phone",
-              "postalcode",
-              "state"
-            ]
-          },
-          {
-            "name": "orders",
-            "columns": [
-              "customernumber",
-              "orderdate",
-              "ordernumber",
-              "status"
+              "priceeach",
+              "productcode",
+              "quantityordered"
             ]
           }
         ]
       }
     ],
     "statistics": {
-      "num_retrieved_val": 4,
-      "num_selected_col": 432,
-      "num_schemas": 3
-    }
-  },
-  {
-    "question_id": "sample_10",
-    "question": "Provide the name of the business which had the most number of inspections because of complaint.",
-    "evidence": "the most number of inspections because of complaint refers to type = 'Complaint' where MAX(business_id);",
-    "keywords": [
-      "max(business_id",
-      "complaint",
-      "inspection",
-      "refer",
-      "number",
-      "business",
-      "type"
-    ],
-    "values": {},
-    "num_selected_columns": 0,
-    "schemas": [],
-    "statistics": {
-      "num_retrieved_val": 0,
-      "num_selected_col": 0,
-      "num_schemas": 0
+      "num_retrieved_val": 2,
+      "num_selected_col": 40,
+      "num_schemas": 1
     }
   }
 ]

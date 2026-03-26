@@ -42,7 +42,6 @@ class SchemaFilterPipeline:
             selected_col=selected_col
         )
 
-        # Retrieve multi-path schemas using full parsed schema (tables + keys)
         filtered_schemas = self.multi_path_retriever.retrieve(
             schema=parsed_schema,
             scored_candidates=selected_col
