@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import sqlglot
 from sqlglot import exp
 
@@ -7,13 +7,47 @@ class SchemaParser:
     def __init__(self):
         pass
 
+    def _parse_statements(self, schema_sql: str):
+        # Try multiple dialects because BIRD schemas mix quoting styles.
+        best_statements = []
+        best_create_count = -1
+        for dialect in (None, "sqlite", "mysql"):
+            try:
+                if dialect is None:
+                    statements = sqlglot.parse(schema_sql)
+                else:
+                    statements = sqlglot.parse(schema_sql, read=dialect)
+            except Exception:
+                continue
+
+            create_count = sum(1 for stmt in statements if isinstance(stmt, exp.Create))
+            if create_count > best_create_count:
+                best_create_count = create_count
+                best_statements = statements
+
+        return best_statements
+
+    def _extract_table_name(self, create_stmt: exp.Create) -> Optional[str]:
+        target = create_stmt.this
+        if not target:
+            return None
+
+        table_expr = target.this if hasattr(target, "this") and isinstance(target.this, exp.Table) else target
+        if isinstance(table_expr, exp.Table):
+            table_name = table_expr.name
+            if table_name:
+                return table_name.lower()
+        return None
+
     def parse_tables(self, schema_sql: str) -> Dict[str, List[str]]:
         tables = {}
-        statements = sqlglot.parse(schema_sql)
+        statements = self._parse_statements(schema_sql)
 
         for stmt in statements:
             if isinstance(stmt, exp.Create) and stmt.this:
-                table_name = stmt.this.name.lower()
+                table_name = self._extract_table_name(stmt)
+                if not table_name:
+                    continue
 
                 columns = []
                 for col in stmt.find_all(exp.ColumnDef):
@@ -24,11 +58,13 @@ class SchemaParser:
 
     def extract_primary_keys(self, schema_sql: str) -> Dict[str, str]:
         pk_map = {}
-        statements = sqlglot.parse(schema_sql)
+        statements = self._parse_statements(schema_sql)
 
         for stmt in statements:
             if isinstance(stmt, exp.Create) and stmt.this:
-                table_name = stmt.this.name.lower()
+                table_name = self._extract_table_name(stmt)
+                if not table_name:
+                    continue
 
                 for col in stmt.find_all(exp.ColumnDef):
                     constraints = col.args.get("constraints") or []
@@ -44,20 +80,24 @@ class SchemaParser:
 
     def extract_foreign_keys(self, schema_sql: str) -> List[Tuple[str, str]]:
         foreign_keys: List[Tuple[str, str]] = []
-        statements = sqlglot.parse(schema_sql)
+        statements = self._parse_statements(schema_sql)
 
         for stmt in statements:
             if isinstance(stmt, exp.Create) and stmt.this:
-                table_name = stmt.this.name.lower()
+                table_name = self._extract_table_name(stmt)
+                if not table_name:
+                    continue
 
                 for fk in stmt.find_all(exp.ForeignKey):
                     local_cols = fk.expressions
                     ref = fk.args.get("reference")
 
                     if ref:
-                        ref_table = ref.this.name.lower()
+                        ref_table = ref.this.name.lower() if ref.this and ref.this.name else None
                         ref_cols = ref.expressions
 
+                        if not ref_table:
+                            continue
                         for lc, rc in zip(local_cols, ref_cols):
                             local = f"{table_name}.{lc.name.lower()}"
                             remote = f"{ref_table}.{rc.name.lower()}"
@@ -71,7 +111,9 @@ class SchemaParser:
                             ref = c.args.get("reference")
 
                             if ref:
-                                ref_table = ref.this.name.lower()
+                                ref_table = ref.this.name.lower() if ref.this and ref.this.name else None
+                                if not ref_table or not ref.expressions:
+                                    continue
                                 ref_col = ref.expressions[0].name.lower()
 
                                 local = f"{table_name}.{col.name.lower()}"

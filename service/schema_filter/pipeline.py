@@ -19,7 +19,7 @@ class SchemaFilterPipeline:
         self.keyword_extractor = KeywordExtractor(resources=shared_resources)
         self.column_selector = ColumnSelector(resources=shared_resources)
         self.value_retriever = ValueRetriever(resources=shared_resources)
-        self.multi_path_retriever = MultiPathSchemaRetriever()
+        self.multi_path_retriever = MultiPathSchemaRetriever(k=top_k_retrieval)
         self.top_k_retrieval = top_k_retrieval
         self.num_schemas = num_schemas
     
@@ -27,8 +27,9 @@ class SchemaFilterPipeline:
         self,
         question: str,
         schema_data: Dict,
+        actual_result: str,
         evidence: Optional[str] = None,
-        question_id: Optional[str] = None
+        question_id: Optional[str] = None,
     ) -> Dict:
         keywords = self.keyword_extractor.extract_keywords(question, evidence)
         parsed_schema = self.schema_parser.parse(schema_data)
@@ -46,8 +47,16 @@ class SchemaFilterPipeline:
 
         filtered_schemas = self.multi_path_retriever.retrieve(
             schema=parsed_schema,
-            scored_candidates=selected_col
+            scored_candidates=selected_col,
+            ps=self.num_schemas,
         )
+
+        # Keep valid table.column shape only.
+        retrieve_value = {
+            key: value
+            for key, value in retrieve_value.items()
+            if "." in key and not key.startswith(".")
+        }
 
         result = {
             "question_id": question_id or "unknown",
@@ -55,6 +64,7 @@ class SchemaFilterPipeline:
             "evidence": evidence,
             "keywords": keywords,
             "schemas": filtered_schemas,
+            "actual_result": actual_result,
             "values": retrieve_value,
             "statistics": {
                 "num_retrieved_val": len(retrieve_value),
@@ -73,17 +83,20 @@ class SchemaFilterPipeline:
             for schema in result.get("schemas", []):
                 table_map = {}
                 for table, column in schema:
+                    if not table:
+                        continue
                     table_map.setdefault(table, set()).add(column)
 
-                formatted_schemas.append({
-                    "tables": [
-                        {
-                            "name": table,
-                            "columns": sorted(list(columns)),
-                        }
-                        for table, columns in sorted(table_map.items())
-                    ]
-                })
+                if table_map:
+                    formatted_schemas.append({
+                        "tables": [
+                            {
+                                "name": table,
+                                "columns": sorted(list(columns)),
+                            }
+                            for table, columns in sorted(table_map.items())
+                        ]
+                    })
             
             formatted_result = {
                 "question_id": result["question_id"],

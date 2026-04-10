@@ -8,7 +8,6 @@ from transformers import (
 import torch
 from peft import LoraConfig, get_peft_model, TaskType
 
-
 class T5SmallSQL:
     def __init__(self, model_name="cssupport/t5-small-awesome-text-to-sql", device=None):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -25,9 +24,6 @@ class T5SmallSQL:
         )
 
     def predict(self, question, schema, max_length=128):
-        """
-        Generate SQL from natural language + schema
-        """
         prompt = f"question: {question} table: {schema}"
 
         output = self.generator(
@@ -75,7 +71,7 @@ class T5SmallSQL:
             r=8,
             lora_alpha=16,
             lora_dropout=0.1,
-            target_modules=["q", "v"] 
+            target_modules=["q", "v"]
         )
 
         self.model = get_peft_model(self.model, lora_config)

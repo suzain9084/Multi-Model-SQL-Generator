@@ -9,9 +9,15 @@ class ColumnSelector:
         self,
         model_name: str = "all-MiniLM-L6-v2",
         k: int = 5,
+        top_per_keyword: int = 8,
+        top_per_table: int = 20,
+        min_score: float = 0.05,
         resources: Optional[SharedNLPResources] = None,
     ):
         self.k = k
+        self.top_per_keyword = top_per_keyword
+        self.top_per_table = top_per_table
+        self.min_score = min_score
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.resources = resources or get_shared_resources()
         self.encoder = self.resources.get_encoder(model_name=model_name, device=self.device)
@@ -70,13 +76,40 @@ class ColumnSelector:
 
         scored_results = []
         for kw_idx, keyword in enumerate(unique_keywords):
+            kw_scores = []
             for col_idx, (table, col) in enumerate(column_pairs):
-                scored_results.append(
+                score = float(combined_scores[kw_idx, col_idx].item())
+                if score < self.min_score:
+                    continue
+                kw_scores.append(
                     {
                         "keyword": keyword,
                         "table": table,
                         "column": col,
-                        "score": float(combined_scores[kw_idx, col_idx].item()),
+                        "score": score,
                     }
                 )
-        return scored_results
+
+            kw_scores.sort(key=lambda x: x["score"], reverse=True)
+            scored_results.extend(kw_scores[: self.top_per_keyword])
+
+        if not scored_results:
+            return []
+
+        by_table: Dict[str, List[Dict]] = {}
+        for item in scored_results:
+            by_table.setdefault(item["table"], []).append(item)
+
+        pruned = []
+        for table_items in by_table.values():
+            table_items.sort(key=lambda x: x["score"], reverse=True)
+            pruned.extend(table_items[: self.top_per_table])
+
+        dedup = {}
+        for item in pruned:
+            key = (item["table"], item["column"], item["keyword"])
+            prev = dedup.get(key)
+            if prev is None or item["score"] > prev["score"]:
+                dedup[key] = item
+
+        return list(dedup.values())

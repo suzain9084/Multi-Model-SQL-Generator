@@ -107,36 +107,3 @@ class SQLValidator:
                     result = {"status": "internal_error", "error": str(e)}
                 results.append((query, result))
         return results
-    
-
-
-schema = """
-CREATE TABLE students (
-    id INTEGER,
-    name VARCHAR,
-    age INTEGER
-);
-"""
-
-data = """
-INSERT INTO students VALUES
-(1, 'Alice', 20),
-(2, 'Bob', 22),
-(3, 'Charlie', 21);
-"""
-
-validator = SQLValidator(schema, data, timeout=0.3, max_workers=4)
-
-queries = [
-    "SELECT * FROM students;",
-    "SELECT name FROM students WHERE age > 20;",
-    "SELEC * FROM students;",  # syntax error
-    "SELECT * FROM unknown_table;"  # runtime error
-]
-
-results = validator.process_batch(queries)
-
-for q, res in results:
-    print(q)
-    print(res)
-    print("-" * 40)

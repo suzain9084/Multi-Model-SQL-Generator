@@ -25,6 +25,16 @@ class ValueRetriever:
             print("spaCy model not found. Run: python -m spacy download en_core_web_sm")
             self.nlp = None
 
+        self.type_hints = {
+            "NUMBER": ["id", "count", "num", "amount", "price", "year", "score", "rate", "age"],
+            "DATE": ["date", "time", "year", "month", "day"],
+            "TIME": ["time", "hour", "minute", "second"],
+            "PERSON": ["name", "person", "author", "director", "inspector", "owner", "customer"],
+            "ORG": ["company", "org", "organization", "publisher", "school", "university"],
+            "GPE": ["country", "city", "state", "region", "location", "address"],
+            "PROPN": ["name", "title", "type", "category"],
+        }
+
     def get_embeddings(self, texts: List[str]) -> torch.Tensor:
         if not texts:
             return torch.empty(0)
@@ -87,11 +97,25 @@ class ValueRetriever:
         value_embeddings = self.get_embeddings([item[0] for item in value_payloads])
         similarity = torch.matmul(value_embeddings, column_embeddings.T)
 
-        best_sims, best_idx = torch.max(similarity, dim=1)
+        topk_sims, topk_idx = torch.topk(similarity, k=min(2, similarity.shape[1]), dim=1)
         for i, (_, raw_value_text) in enumerate(value_payloads):
-            best_sim = float(best_sims[i].item())
-            best_col = column_metas[int(best_idx[i].item())]
-            if best_col and best_sim >= 0.2:
+            best_sim = float(topk_sims[i, 0].item())
+            best_col = column_metas[int(topk_idx[i, 0].item())]
+            second_best = float(topk_sims[i, 1].item()) if topk_sims.shape[1] > 1 else -1.0
+            margin = best_sim - second_best
+
+            value_type = values[i]["type"]
+            adaptive_threshold = 0.30 if value_type in {"NUMBER", "DATE", "TIME"} else 0.35
+            is_type_compatible = self._is_type_compatible(best_col, value_type)
+
+            if best_col and best_sim >= adaptive_threshold and margin >= 0.03 and is_type_compatible:
                 results[best_col] = raw_value_text
 
         return results
+
+    def _is_type_compatible(self, column_name: str, value_type: str) -> bool:
+        table_col = column_name.lower()
+        hints = self.type_hints.get(value_type, [])
+        if not hints:
+            return True
+        return any(h in table_col for h in hints)

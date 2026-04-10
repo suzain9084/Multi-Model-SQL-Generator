@@ -22,9 +22,10 @@ def create_batch(ds, batch_size):
         schema_sql = sample.get("db_schema", sample.get("schema", ""))
         evidence = sample.get("evidence", sample.get("context", None))
         question_id = sample.get("question_id", sample.get("id", f"sample_{i}"))
+        actual_result = sample.get("SQL", None)
 
-        if question:
-            batch.append((question, schema_sql, evidence, question_id))
+        if question and actual_result:
+            batch.append((question, schema_sql, evidence, question_id, actual_result))
 
         if len(batch) == batch_size:
             yield batch
@@ -80,7 +81,7 @@ def main():
     print()
 
     # Process the whole dataset
-    num_samples = 10
+    num_samples = len(ds)
     batch_size = 16
     print(f"Processing full training split: {num_samples} samples")
     print()
@@ -88,7 +89,7 @@ def main():
     results = []
     with tqdm(total=num_samples, desc="Processing", dynamic_ncols=True) as pbar:
         for batch in create_batch(ds, batch_size):
-            for question, schema_sql, evidence, question_id in batch:
+            for question, schema_sql, evidence, question_id, actual_result in batch:
                 try:
                     with torch.no_grad():
                         result = pipeline.process_sample(
@@ -96,8 +97,9 @@ def main():
                             schema_data=schema_sql,
                             evidence=evidence,
                             question_id=question_id,
+                            actual_result=actual_result
                         )
-
+                    
                     results.append(result)
 
                 except Exception as e:

@@ -2,9 +2,10 @@ from typing import List, Dict, Tuple, Set
 from collections import defaultdict
 
 class MultiPathSchemaRetriever:
-    def __init__(self,  k: int = 5, coverage_bonus: float = 0.1):
+    def __init__(self,  k: int = 20, coverage_bonus: float = 0.1, min_score: float = 0.05):
         self.k = k
         self.coverage_bonus = coverage_bonus
+        self.min_score = min_score
 
     def identify_keys(
         self,
@@ -37,7 +38,7 @@ class MultiPathSchemaRetriever:
         for item in candidates:
             key = (item["table"], item["column"])
 
-            if item["score"] > 0:
+            if item["score"] >= self.min_score:
                 column_scores[key] += item["score"]
                 keyword_hits[key] += 1
 
