@@ -1,0 +1,15 @@
+{
+  "json_path": "schema_filter_results.json",
+  "epochs": 3,
+  "parse_dialect": "duckdb",
+  "models": [
+    {
+      "model_name": "cssupport/t5-small-awesome-text-to-sql",
+      "output_dir": "checkpoints/t5_sql_lora_awesome"
+    },
+    {
+      "model_name": "google/flan-t5-small",
+      "output_dir": "checkpoints/t5_sql_lora_flan"
+    }
+  ]
+}

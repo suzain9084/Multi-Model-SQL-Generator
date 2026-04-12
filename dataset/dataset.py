@@ -22,14 +22,25 @@ class FilteredSchemaDataset(Dataset):
         self._actual_result: List[str] = []
         for item in data:
             schemas = item.get("schemas", [])
-            if (len(schemas) != 0):
-                self._actual_result.append(item.get("actual_result", ""))
-                self._examples.append(
-                    SchemaFilterExample(
-                        question=item.get("question", ""),
-                        evidence=item.get("evidence"),
-                        schemas=schemas,
-                    )
+            if len(schemas) == 0:
+                continue
+            gold = (
+                item.get("actual_result")
+                or item.get("SQL")
+                or item.get("gold_sql")
+                or ""
+            )
+            if isinstance(gold, str):
+                gold = gold.strip()
+            else:
+                gold = str(gold).strip() if gold is not None else ""
+            self._actual_result.append(gold)
+            self._examples.append(
+                SchemaFilterExample(
+                    question=item.get("question", ""),
+                    evidence=item.get("evidence"),
+                    schemas=schemas,
+                )
             )
 
     def __len__(self) -> int:

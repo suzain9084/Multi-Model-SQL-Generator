@@ -1,16 +1,48 @@
 from collections import defaultdict
 import math
 
+from sqlglot import parse
+
+
 class SqlSelector:
-    def __init__(self, selection_model, generator_order=None):
+    def __init__(self, selection_model, generator_order=None, parse_dialect: str = "duckdb"):
         self.selection_model = selection_model
         self.generator_order = generator_order or {}
+        self.parse_dialect = parse_dialect
+
+    def _canonical_sql(self, sql: str) -> str:
+        text = (sql or "").strip()
+        if not text:
+            return ""
+        try:
+            exprs = parse(text, dialect=self.parse_dialect)
+            parts = [
+                e.sql(dialect=self.parse_dialect)
+                for e in exprs
+                if e is not None
+            ]
+            return " | ".join(parts) if parts else text
+        except Exception:
+            return text
+
+    def _cluster_key(self, sql: str, result):
+        if isinstance(result, dict):
+            status = result.get("status")
+            if status == "success":
+                return ("ok", self._canonical_sql(sql))
+            err = result.get("error") or status or "error"
+            return ("failed", str(err))
+        if isinstance(result, str):
+            return ("syntax_error", result)
+        if result is None:
+            return ("unchecked", self._canonical_sql(sql))
+        return ("ok", self._canonical_sql(sql))
 
     def cluster_by_result(self, sql_results):
         clusters = defaultdict(list)
 
         for idx, (sql, result) in enumerate(sql_results):
-            key = str(result)
+            key = self._cluster_key(sql, result)
             clusters[key].append((idx, sql, result))
 
         return list(clusters.values())
@@ -22,7 +54,7 @@ class SqlSelector:
         return sorted(
             cluster,
             key=lambda x: self.generator_order.get(x[0], 0),
-            reverse=True
+            reverse=True,
         )
 
     def shortest_sql(self, cluster):
@@ -62,7 +94,7 @@ class SqlSelector:
             question=question,
             schema=schema_union,
             evidence=evidence,
-            candidates=reorganized_sqls
+            candidates=reorganized_sqls,
         )
 
         return final_sql

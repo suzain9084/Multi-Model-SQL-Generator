@@ -108,6 +108,8 @@ class SchemaFilterPipeline:
                 "schemas": formatted_schemas,
                 "statistics": result["statistics"],
             }
+            if result.get("actual_result") is not None:
+                formatted_result["actual_result"] = result["actual_result"]
             formatted_results.append(formatted_result)
 
         with open(output_path, "w", encoding="utf-8") as f:
