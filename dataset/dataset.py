@@ -9,6 +9,7 @@ class SchemaFilterExample:
     question: str
     evidence: Optional[str]
     schemas: List[Dict[str, Any]]
+    sqlfile_path: str
 
 class FilteredSchemaDataset(Dataset):
     def __init__(self, json_path: str) -> None:
@@ -22,14 +23,11 @@ class FilteredSchemaDataset(Dataset):
         self._actual_result: List[str] = []
         for item in data:
             schemas = item.get("schemas", [])
-            if len(schemas) == 0:
+            gold = item.get("actual_result", None)
+            sqlfile_path = item.get("sqlfile_path", None)
+            if len(schemas) == 0 or gold == None:
                 continue
-            gold = (
-                item.get("actual_result")
-                or item.get("SQL")
-                or item.get("gold_sql")
-                or ""
-            )
+
             if isinstance(gold, str):
                 gold = gold.strip()
             else:
@@ -40,11 +38,12 @@ class FilteredSchemaDataset(Dataset):
                     question=item.get("question", ""),
                     evidence=item.get("evidence"),
                     schemas=schemas,
+                    sqlfile_path=sqlfile_path
                 )
             )
 
     def __len__(self) -> int:
-        return len(self._examples)
+        return min(10, len(self._examples))
 
     def __getitem__(self, idx: int) -> (SchemaFilterExample, str):
         return self._examples[idx], self._actual_result[idx]

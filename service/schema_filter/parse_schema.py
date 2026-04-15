@@ -56,8 +56,8 @@ class SchemaParser:
                 tables[table_name] = columns
         return tables
 
-    def extract_primary_keys(self, schema_sql: str) -> Dict[str, str]:
-        pk_map = {}
+    def extract_primary_keys(self, schema_sql: str) -> Dict[str, List[str]]:
+        pk_map: Dict[str, List[str]] = {}
         statements = self._parse_statements(schema_sql)
 
         for stmt in statements:
@@ -70,12 +70,19 @@ class SchemaParser:
                     constraints = col.args.get("constraints") or []
                     for c in constraints:
                         if isinstance(c, exp.PrimaryKeyColumnConstraint):
-                            pk_map[table_name] = col.name.lower()
+                            pk_map.setdefault(table_name, [])
+                            col_name = col.name.lower()
+                            if col_name not in pk_map[table_name]:
+                                pk_map[table_name].append(col_name)
 
                 for constraint in stmt.find_all(exp.PrimaryKey):
                     cols = constraint.expressions
                     if cols:
-                        pk_map[table_name] = cols[0].name.lower()
+                        pk_map.setdefault(table_name, [])
+                        for c in cols:
+                            col_name = c.name.lower()
+                            if col_name not in pk_map[table_name]:
+                                pk_map[table_name].append(col_name)
         return pk_map
 
     def extract_foreign_keys(self, schema_sql: str) -> List[Tuple[str, str]]:

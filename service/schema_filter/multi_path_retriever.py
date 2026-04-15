@@ -16,8 +16,10 @@ class MultiPathSchemaRetriever:
         expanded = set()
 
         for table, _ in selected:
-            pk = schema.get("primary_keys", {}).get(table)
-            if pk:
+            pks = schema.get("primary_keys", {}).get(table, [])
+            if isinstance(pks, str):
+                pks = [pks]
+            for pk in pks:
                 expanded.add((table, pk))
 
         for fk, ref in schema.get("foreign_keys", []):

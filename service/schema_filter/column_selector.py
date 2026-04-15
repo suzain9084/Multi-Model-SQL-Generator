@@ -3,7 +3,6 @@ import torch
 
 from service.schema_filter.model_resources import get_shared_resources, SharedNLPResources
 
-
 class ColumnSelector:
     def __init__(
         self,

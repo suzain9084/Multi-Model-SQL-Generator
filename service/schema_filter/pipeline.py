@@ -30,9 +30,14 @@ class SchemaFilterPipeline:
         actual_result: str,
         evidence: Optional[str] = None,
         question_id: Optional[str] = None,
+        sqlfile_path: Optional[str] | Optional[Dict] = None
     ) -> Dict:
+        parsed_schema = None
         keywords = self.keyword_extractor.extract_keywords(question, evidence)
-        parsed_schema = self.schema_parser.parse(schema_data)
+        if sqlfile_path:
+            parsed_schema = schema_data
+        else:
+            parsed_schema = self.schema_parser.parse(schema_data)
         
         selected_col = self.column_selector.select_columns_iterative(
             parsed_schema, 
@@ -65,12 +70,8 @@ class SchemaFilterPipeline:
             "keywords": keywords,
             "schemas": filtered_schemas,
             "actual_result": actual_result,
+            "sqlfile_path": sqlfile_path, 
             "values": retrieve_value,
-            "statistics": {
-                "num_retrieved_val": len(retrieve_value),
-                "num_selected_col": len(selected_col),
-                "num_schemas": len(filtered_schemas)
-            }
         }
 
         return result
@@ -104,9 +105,8 @@ class SchemaFilterPipeline:
                 "evidence": result.get("evidence"),
                 "keywords": result.get("keywords", []),
                 "values": result["values"],
-                "num_selected_columns": result["statistics"].get("num_selected_col"),
                 "schemas": formatted_schemas,
-                "statistics": result["statistics"],
+                "sqlfile_path": result.get("sqlfile_path", None)
             }
             if result.get("actual_result") is not None:
                 formatted_result["actual_result"] = result["actual_result"]
