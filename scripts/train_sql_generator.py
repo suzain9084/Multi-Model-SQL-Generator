@@ -51,12 +51,14 @@ def main():
 
     multi_sql_generator = MultipleSqlGenerator(models=models, parse_dialect=parse_dialect)
     dataset = FilteredSchemaDataset(json_path=json_path)
-    selector_model = DebertaSqlSelector(
-        model_name=config.get("selector_model_name", "microsoft/deberta-v3-small"),
-        checkpoint_path=config.get("selector_checkpoint_path"),
-        max_length=int(config.get("selector_max_length", 512)),
-    )
-    sql_selector = SqlSelector(selection_model=selector_model, parse_dialect=parse_dialect)
+    sql_selector = None
+    if not use_gold_targets:
+        selector_model = DebertaSqlSelector(
+            model_name=config.get("selector_model_name", "microsoft/deberta-v3-small"),
+            checkpoint_path=config.get("selector_checkpoint_path"),
+            max_length=int(config.get("selector_max_length", 512)),
+        )
+        sql_selector = SqlSelector(selection_model=selector_model, parse_dialect=parse_dialect)
     training_records: List[Dict[str, str]] = []
     selector_training_records: List[Dict[str, Any]] = []
 

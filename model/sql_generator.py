@@ -7,7 +7,7 @@ from transformers import (
     BitsAndBytesConfig
 )
 import torch
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 
 class CausalSQLModel:
     def __init__(
@@ -20,11 +20,12 @@ class CausalSQLModel:
         self.finetune_type = finetune_type.lower()
 
         self.device = device if device else ("cuda" if torch.cuda.is_available() else "cpu")
+        self.is_qlora = self.finetune_type == "qlora"
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        if self.finetune_type == "qlora":
+        if self.is_qlora:
             print("Loading model with QLoRA (4-bit)...")
 
             bnb_config = BitsAndBytesConfig(
@@ -37,7 +38,7 @@ class CausalSQLModel:
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 quantization_config=bnb_config,
-                device_map="auto"
+                device_map={"": 0} if self.device == "cuda" else None
             )
 
         else:
@@ -130,7 +131,10 @@ class CausalSQLModel:
             target_modules=["q_proj", "v_proj"]
         )
 
+        if self.is_qlora:
+            self.model = prepare_model_for_kbit_training(self.model)
         self.model = get_peft_model(self.model, lora_config)
+        self.model.config.use_cache = False
 
         self.model.print_trainable_parameters()
 
@@ -140,11 +144,13 @@ class CausalSQLModel:
             gradient_accumulation_steps=4,
             num_train_epochs=epochs,
             learning_rate=2e-4,
-            logging_steps=50,
+            logging_steps=1,
             save_steps=200,
             fp16=torch.cuda.is_available(),
             report_to=[],
             dataloader_pin_memory=torch.cuda.is_available(),
+            remove_unused_columns=False,
+            optim="paged_adamw_8bit" if self.is_qlora else "adamw_torch",
         )
 
         trainer = Trainer(
