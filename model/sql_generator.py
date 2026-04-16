@@ -103,7 +103,9 @@ class CausalSQLModel:
     def fine_tune(self, train_dataset, output_dir="./sql_model", epochs=3):
         def preprocess(example):
             prompt = self._format_prompt(example["question"], example["schema"])
-            full_text = prompt + example["sql"]
+            target = example["sql"]
+
+            full_text = prompt + target
 
             tokenized = self.tokenizer(
                 full_text,
@@ -112,7 +114,16 @@ class CausalSQLModel:
                 max_length=512
             )
 
-            tokenized["labels"] = tokenized["input_ids"].copy()
+            prompt_tokens = self.tokenizer(
+                prompt,
+                truncation=True,
+                max_length=512
+            )
+
+            prompt_length = len(prompt_tokens["input_ids"])
+            labels = tokenized["input_ids"].copy()
+            labels[:prompt_length] = [-100] * prompt_length
+            tokenized["labels"] = labels
             return tokenized
 
         tokenized_dataset = train_dataset.map(preprocess)
