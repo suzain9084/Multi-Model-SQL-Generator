@@ -1,0 +1,7 @@
+id,setting,execution_accuracy
+2.1,Direct generator only (no extra modules),0.2842
+2.2,Schema Filter only,0.3958
+2.3,Schema Filter + multiple generators; selection without DB execution feedback,0.5133
+2.4,Schema Filter + multiple generators + DB execution for candidate validation,0.6617
+2.5,"Fine-tuned models, trained without multi-task learning",0.5871
+2.6,"Fine-tuned models, trained with multi-task learning",0.7153

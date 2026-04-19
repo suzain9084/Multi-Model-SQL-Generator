@@ -1,17 +1,25 @@
 {
   "json_path": "schema_filter_results_2.json",
-  "epochs": 3,
+  "epochs": 10,
   "batch_size": 4,
   "save_root": "checkpoints",
   "parse_dialect": "sqlite",
   "selector_model_name": "microsoft/deberta-v3-small",
   "selector_checkpoint_path": null,
   "selector_max_length": 512,
-  "max_examples": 10,
   "max_schemas_per_example": 3,
   "run_execution": false,
   "train_selector": false,
   "use_gold_targets": false,
+  "enable_multitask_training_records": true,
+  "evidence_negative_candidates": 3,
+  "seed": 42,
+  "task_weights": {
+    "text_to_sql": 1.0,
+    "question_inference": 1.0,
+    "evidence_inference": 1.0,
+    "self_refine": 1.0
+  },
   "models": [
     {
       "model_name": "Qwen/Qwen2.5-Coder-1.5B",

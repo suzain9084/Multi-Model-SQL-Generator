@@ -72,6 +72,20 @@ class SqlSelector:
 
         schema_union = " ".join(map(str, schemas))
 
+        if not isExecuted:
+            non_syntax_error_candidates = [
+                sql
+                for sql, result in sql_results
+                if self._cluster_key(sql, result, is_executed=False)[0] != "syntax_error"
+            ]
+            if non_syntax_error_candidates:
+                return self.selection_model.predict(
+                    question=question,
+                    schema=schema_union,
+                    evidence=evidence,
+                    candidates=non_syntax_error_candidates,
+                )
+
         if len(clusters) == 1:
             best = self.shortest_sql(clusters[0])
             return best[1]

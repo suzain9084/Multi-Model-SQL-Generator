@@ -44,11 +44,7 @@ class DebertaSqlSelector:
             parts.append(f"Evidence: {evidence}")
         return "\n".join(parts)
 
-    def _score_candidates(
-        self,
-        query_text: str,
-        candidates: Iterable[str],
-    ) -> List[float]:
+    def _score_candidates(self, query_text, candidates):
         candidate_list = list(candidates)
         if not candidate_list:
             return []
@@ -67,7 +63,7 @@ class DebertaSqlSelector:
             logits = self.model(**encoded).logits
 
         if logits.ndim == 1:
-            return [float(logits[-1].item())]
+            logits = logits.unsqueeze(0)
 
         probabilities = torch.softmax(logits, dim=-1)[:, 1]
         return probabilities.detach().cpu().tolist()
@@ -128,7 +124,8 @@ class DebertaSqlSelector:
             return tokenized
 
         tokenized_dataset = train_dataset.map(preprocess)
-        keep_columns = {"input_ids", "attention_mask", "labels", "token_type_ids"}
+
+        keep_columns = {"input_ids", "attention_mask", "labels"}
         remove_columns = [
             c for c in tokenized_dataset.column_names if c not in keep_columns
         ]
@@ -136,7 +133,10 @@ class DebertaSqlSelector:
             tokenized_dataset = tokenized_dataset.remove_columns(remove_columns)
 
         if not hasattr(self.model, "peft_config"):
-            target_modules = lora_target_modules or ["query_proj", "key_proj", "value_proj"]
+            target_modules = lora_target_modules or [
+                "query_proj", "key_proj", "value_proj",
+                "pos_key_proj", "pos_query_proj"
+            ]
             lora_config = LoraConfig(
                 task_type=TaskType.SEQ_CLS,
                 r=lora_r,
@@ -148,6 +148,7 @@ class DebertaSqlSelector:
             self.model.print_trainable_parameters()
 
         self.model.train()
+
         training_args = TrainingArguments(
             output_dir=output_dir,
             per_device_train_batch_size=per_device_train_batch_size,
@@ -157,6 +158,7 @@ class DebertaSqlSelector:
             save_steps=200,
             fp16=torch.cuda.is_available(),
             report_to=[],
+            remove_unused_columns=False,
         )
         trainer = Trainer(
             model=self.model,
