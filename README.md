@@ -6,6 +6,24 @@ This document functions as both **repository documentation** and a **concise tec
 
 ---
 
+## Project snapshot (for external reviewers / LLM report generation)
+
+- **Current core model code:** `model/sql_generator.py` (`CausalSQLModel`, LoRA/QLoRA on causal backbones such as Qwen/DeepSeek).
+- **Schema filtering pipeline:** `service/schema_filter/` (keyword extraction, column selection, multi-path retrieval).
+- **Candidate generation & selection:** `service/multiple_sql_generator_pipeline/multiple_sql_generator.py` and `service/sql_selector/sql_selector.py`.
+- **Execution-based validation:** `service/sql_execution/sql_execution.py` (SQLite execution + result signatures).
+- **Primary scripts:** `scripts/multiple_schema_pipeline_run.py`, `scripts/train_sql_generator.py`, `scripts/ablation_evaluation.py`.
+- **Evaluation outputs:** `data/ablation/` (CSV/MD metrics), `plot/ablation/` (figures), `plot/schema_filter/` (schema-filter analysis plots).
+
+### Scope and status (important)
+
+- This is a **research/engineering prototype**, not a production-ready text-to-SQL platform.
+- The repo includes both **real evaluation mode** and **synthetic simulation mode** in `scripts/ablation_evaluation.py`.
+- BIRD data files are expected to be present locally (not necessarily committed to this repository).
+- Report readers should treat results as **reproducible locally with correct data paths/config**, not as official leaderboard submissions.
+
+---
+
 ## Table of contents
 
 1. [Executive summary](#1-executive-summary)
@@ -28,8 +46,8 @@ This document functions as both **repository documentation** and a **concise tec
 **Approach in this repo.**
 
 1. **Schema filter** (`service/schema_filter/`): Parse and normalize the schema; extract keywords; score and select columns iteratively; run **multi-path retrieval** to emit **several compact schema views** (paths) per question instead of one monolithic schema string.
-2. **SQL generation** (`model/SQL-generator.py`, `service/multiple-sql-generator-pipeline/`): One or more **T5-family** seq2seq models generate SQL for each **(question, schema path)** pair. Optional **sqlglot** parsing checks catch syntax errors; a **refine** prompt asks the model to fix invalid SQL.
-3. **SQL selection** (`service/sql-selector/`): Candidates are **clustered** by execution/syntax outcome (when available) or error type; a **majority / shortest-SQL heuristic** reduces the list; a **selection model** chooses the final query from reorganized candidates.
+2. **SQL generation** (`model/sql_generator.py`, `service/multiple_sql_generator_pipeline/`): One or more **causal decoder backbones** (for example Qwen/DeepSeek) generate SQL for each **(question, schema path)** pair. Optional **sqlglot** parsing checks catch syntax errors; a **refine** prompt asks the model to fix invalid SQL.
+3. **SQL selection** (`service/sql_selector/`): Candidates are **clustered** by execution/syntax outcome (when available) or error type; a **majority / shortest-SQL heuristic** reduces the list; a **selection model** chooses the final query from reorganized candidates.
 4. **Training** (`scripts/train_sql_generator.py`): Gold SQL from filtered JSON is paired with **every** schema path string to form supervised **input_text → target_text** examples; **LoRA** adapts each backbone efficiently.
 
 **Primary influences.** The overall story follows **XiYan-SQL** (multi-generator + schema filtering). The dataset framing follows **BIRD** (evidence, realistic SQL). Parameter-efficient training follows **LoRA** for large pretrained seq2seq models.
@@ -77,13 +95,13 @@ XiYan-SQL frames **multiple generators** plus selection as a first-class archite
 
 **LoRA** (Low-Rank Adaptation) injects trainable low-rank matrices into attention projections (and optionally other layers) while freezing most of the pretrained weights. For seq2seq text-to-SQL, this enables **domain adaptation** on BIRD-style pairs without full-model fine-tuning cost.
 
-**In this repo:** `T5SmallSQL.fine_tune_lora` uses Hugging Face `peft` with `TaskType.SEQ_2_SEQ_LM`, small rank `r`, and targets **`q` and `v`** projections—typical for attention-only adaptation in T5 blocks.
+**In this repo:** `CausalSQLModel.fine_tune` uses Hugging Face `peft` with `TaskType.CAUSAL_LM` and LoRA targets **`q_proj`, `k_proj`, `v_proj`, `o_proj`**.
 
 ### 2.7 SQL validation and canonicalization
 
 **sqlglot** provides a **parser** and **SQL transpilation** surface. Parsing does not guarantee semantic correctness against a live database, but it **filters malformed strings** and supports **canonical forms** for grouping similar queries.
 
-**In this repo:** `MultipleSqlGenerator.check_sql_syntax` uses `sqlglot.parse` with a configurable **dialect** (default aligned with `duckdb` in config). `SqlSelector._canonical_sql` uses parsing to cluster **syntactically equivalent** formulations when possible.
+**In this repo:** `MultipleSqlGenerator.check_sql_syntax` uses `sqlglot.parse` with a configurable **dialect** (default aligned with `sqlite` in config). `SqlSelector._canonical_sql` uses parsing to cluster **syntactically equivalent** formulations when possible.
 
 ---
 
@@ -101,7 +119,7 @@ Given **(question, evidence, full schema)**, produce SQL that answers the questi
 ### 3.2 What this repository contributes (engineering / research artifacts)
 
 - A **working schema-filter pipeline** with **multi-path** outputs persisted to JSON.
-- A **training script** that expands **(question, multiple schema paths) → gold SQL** into a Hugging Face `Dataset` and runs **LoRA** for one or more T5-family checkpoints.
+- A **training script** that expands **(question, multiple schema paths) → gold SQL** into a Hugging Face `Dataset` and runs **LoRA/QLoRA** for one or more causal backbones.
 - A **multi-SQL generator** with **parse-check** and **refinement loop** scaffolding.
 - A **selector** that combines **outcome clustering**, **majority heuristics**, and a **pluggable selection model**.
 
@@ -111,45 +129,47 @@ Given **(question, evidence, full schema)**, produce SQL that answers the questi
 
 ### 4.1 Repository layout (actual)
 
-```
-SQL-Query-Generator/
+```text
+.
 ├── config/
-│   └── train_sql_generator.json    # Training: JSON path, epochs, dialect, model list
+│   └── train_sql_generator.json
 ├── dataset/
-│   └── dataset.py                  # FilteredSchemaDataset → torch/HF-friendly examples
+│   ├── bird_dataset.py                 # BIRD train/dev loader + schema index helpers
+│   └── dataset.py                      # FilteredSchemaDataset for schema-filter outputs
 ├── model/
-│   └── SQL-generator.py            # T5SmallSQL: predict, LoRA fine-tune, save/load
+│   ├── sql_generator.py                # CausalSQLModel (LoRA / QLoRA)
+│   └── sql_selector.py                 # DebertaSqlSelector
 ├── scripts/
-│   ├── multiple_schema_pipeline_run.py   # BIRD → schema filter → schema_filter_results.json
-│   └── train_sql_generator.py            # JSON → HF Dataset → LoRA per backbone
+│   ├── multiple_schema_pipeline_run.py # run schema filtering over BIRD-style JSON
+│   ├── train_sql_generator.py          # generator + optional selector training
+│   ├── ablation_evaluation.py          # real BIRD dev ablation + synthetic mode
+│   └── ablation_evaluation_runs.py
 ├── service/
-│   ├── schema_filter/              # End-to-end schema filtering
-│   │   ├── pipeline.py
-│   │   ├── parse_schema.py
-│   │   ├── keyword_extractor.py
-│   │   ├── column_selector.py
-│   │   ├── column_select_ngram.py
-│   │   ├── multi_path_retriever.py
-│   │   ├── value_retriever.py
-│   │   └── model_resources.py
-│   ├── multiple-sql-generator-pipeline/
-│   │   └── pipeline.py             # MultipleSqlGenerator
-│   └── sql-selector/
-│       └── sql-selector.py         # SqlSelector
-├── requirements.txt
-└── schema_filter_results.json      # Produced by batch run (large; not always in VCS)
+│   ├── schema_filter/
+│   ├── multiple_sql_generator_pipeline/
+│   │   └── multiple_sql_generator.py
+│   ├── sql_selector/
+│   │   └── sql_selector.py
+│   └── sql_execution/
+│       └── sql_execution.py            # execution service on SQLite DB files
+├── plot/
+│   ├── ablation/
+│   └── schema_filter/
+├── data/
+│   └── ablation/
+└── requirements.txt
 ```
 
 ### 4.2 End-to-end data flow
 
 ```text
-BIRD (HF dataset)
+BIRD-style JSON + schemas + sqlite DBs
     → SchemaFilterPipeline.process_sample(...)
         → keywords, selected columns, values map, multiple schema path structures
     → save_results → schema_filter_results.json
-        → FilteredSchemaDataset + MultipleSqlGenerator.schema_paths_to_strings
-        → HF Dataset (input_text, target_text)
-        → LoRA fine-tune each configured T5 backbone
+        → FilteredSchemaDataset
+        → HF Dataset records for CausalSQLModel fine-tuning
+        → LoRA/QLoRA fine-tune each configured backbone
 ```
 
 At inference time (conceptually): **filter → for each model × each schema path → SQL → parse/refine → cluster → select**.
@@ -175,19 +195,18 @@ At inference time (conceptually): **filter → for each model × each schema pat
 
 Implements iterative rounds: score and take top-`k` column tuples, expand with **primary/foreign keys**, accumulate growing schema sets, and **remove** consumed columns from the candidate pool (except key-driven expansion). This realizes a **discrete** analogue of “multiple schema paths” for downstream generators.
 
-### 5.3 `model/SQL-generator.py` — `T5SmallSQL`
+### 5.3 `model/sql_generator.py` — `CausalSQLModel`
 
 - **Prompt format:** `question: {question} table: {schema_string}`.
-- **Inference:** Hugging Face `text2text-generation` pipeline, sampling with temperature.
-- **Training:** Tokenize `input_text` / `target_text` (max length 128), attach labels, wrap base model with **LoRA**, train with `Trainer` + `TrainingArguments`, refresh pipeline after training.
+- **Inference:** Hugging Face `text-generation` pipeline, sampling with temperature.
+- **Training:** Prompt+target causal training with optional multi-task records; wraps base model with **LoRA/QLoRA** and trains with `Trainer` + `TrainingArguments`.
 
-### 5.4 `service/multiple-sql-generator-pipeline/pipeline.py` — `MultipleSqlGenerator`
+### 5.4 `service/multiple_sql_generator_pipeline/multiple_sql_generator.py` — `MultipleSqlGenerator`
 
-- **`schema_paths_to_strings`:** Flattens filtered schemas into `table ( col1, col2 ) | ...` strings—one string per path, matching the generator prompt.
 - **`generateMultipleSql`:** Nested loops over **models** and **schema paths**; optional **sqlglot** syntax check; **refine** on parse failure with error text in the prompt.
 - **`fine_tune_all_backbones`:** Trains each model with its own `output_dir`.
 
-### 5.5 `service/sql-selector/sql-selector.py` — `SqlSelector`
+### 5.5 `service/sql_selector/sql_selector.py` — `SqlSelector`
 
 - **Clustering key:** Success vs failure vs syntax error string vs unchecked, with **canonical SQL** when parse succeeds.
 - **Majority logic:** If the largest cluster has ≥ ⌈N/2⌉ candidates, flatten clusters in sorted order; else take **shortest SQL per cluster**.
@@ -215,8 +234,8 @@ Example fields:
 
 - `json_path`: source filtered JSON (default `schema_filter_results.json`).
 - `epochs`: training epochs per backbone.
-- `parse_dialect`: e.g. `duckdb` (used by the multi-generator wrapper for consistency).
-- `models`: list of `{ "model_name", "output_dir" }` entries (e.g. `cssupport/t5-small-awesome-text-to-sql`, `google/flan-t5-small`).
+- `parse_dialect`: e.g. `sqlite` (should match BIRD SQL dialect and evaluator settings).
+- `models`: list of `{ "model_name", "finetune_type", "output_dir" }` entries (for example Qwen/DeepSeek backbones).
 
 ---
 
@@ -254,31 +273,89 @@ Optional (recommended for keyword extraction):
 python -m spacy download en_core_web_sm
 ```
 
-Key libraries: `torch`, `transformers`, `peft`, `datasets`, `sentence-transformers`, `sqlglot`, `spacy`, `duckdb`, `numpy`, `scikit-learn`, `huggingface-hub`.
+Key libraries: `torch`, `transformers`, `peft`, `datasets`, `sentence-transformers`, `sqlglot`, `spacy`, `numpy`, `scikit-learn`, `huggingface-hub`.
 
-### 8.2 Run schema filtering on BIRD train split
+### 8.2 Download / prepare BIRD data (required)
+
+Place BIRD data locally so the project can read JSON and SQLite files. One workable layout is:
+
+```text
+dataset/
+├── train/
+│   ├── train.json
+│   ├── train_tables.json
+│   └── train_databases/
+│       └── train_databases/
+│           └── <db_id>/<db_id>.sqlite
+└── dev/
+    ├── dev.json
+    ├── dev_tables.json
+    └── dev_databases/
+        └── dev_databases/
+            └── <db_id>/<db_id>.sqlite
+```
+
+Download from the official [BIRD benchmark site](https://bird-bench.github.io/) and keep filenames consistent with script arguments.
+
+### 8.2.1 Quick reproducibility checklist
+
+Before running scripts, confirm:
+
+- Python environment has `requirements.txt` installed.
+- BIRD train/dev JSON + SQLite files exist at the paths passed to scripts.
+- `config/train_sql_generator.json` has valid model names and output directories.
+- `parse_dialect` in config and evaluation command are aligned (typically `sqlite`).
+- GPU availability is sufficient for selected backbones (or use smaller checkpoints).
+
+### 8.3 Run schema filtering on BIRD train split
 
 From the repository root:
 
 ```bash
-python scripts/multiple_schema_pipeline_run.py
+python scripts/multiple_schema_pipeline_run.py \
+  --data-root dataset \
+  --output-file schema_filter_results_2.json
 ```
 
-This loads `xu3kev/BIRD-SQL-data-train`, runs `SchemaFilterPipeline` with `top_k_retrieval=20`, `num_schemas=2`, and writes **`schema_filter_results.json`**.
+This runs `SchemaFilterPipeline` and writes filtered training records.
 
 > **Note:** Full-dataset runs are long and produce a **large** JSON file. For development, consider temporarily limiting samples in the script.
 
-### 8.3 Train SQL generators (LoRA)
+### 8.4 Train SQL generators (LoRA / QLoRA)
 
-After `schema_filter_results.json` exists:
+After filtered JSON exists:
 
 ```bash
 python scripts/train_sql_generator.py
 ```
 
-Edit `config/train_sql_generator.json` to point to your JSON path, dialect, and checkpoint directories.
+Edit `config/train_sql_generator.json` for JSON path, dialect, selector options, and output checkpoints.
 
-### 8.4 Programmatic schema filtering (minimal)
+### 8.5 End-to-end inference/evaluation on BIRD dev
+
+Run real ablation/evaluation metrics (EX, valid SQL rate, schema-filter recall):
+
+```bash
+python scripts/ablation_evaluation.py \
+  --mode real \
+  --config config/train_sql_generator.json \
+  --dev-json dataset/dev/dev.json \
+  --dev-tables dataset/dev/dev_tables.json \
+  --sqlite-root dataset/dev/dev_databases/dev_databases \
+  --data-dir data/ablation
+```
+
+This produces:
+- `data/ablation/pipeline_ablation_real_metrics.csv`
+- `data/ablation/pipeline_ablation_real_metrics.md`
+
+You can still run synthetic plots (kept for simulation/debug baselines):
+
+```bash
+python scripts/ablation_evaluation.py --mode synthetic
+```
+
+### 8.6 Programmatic schema filtering (minimal)
 
 ```python
 from service.schema_filter.pipeline import SchemaFilterPipeline
@@ -302,7 +379,7 @@ result = pipeline.process_sample(
 1. **Not a full XiYan-SQL reproduction:** LLM-heavy subroutines from the paper are approximated with **heuristics**, **embeddings**, and **keyword models** where noted in code.
 2. **Value retrieval:** Value-level grounding may be partial or dataset-dependent; full BIRD-style value grounding often needs **database access** or cached value statistics.
 3. **Selection model:** The interface is present; **training** the selector with execution feedback is left as future work.
-4. **Evaluation:** This report does not fix official **BIRD** dev/test numbers; integrating `bird-bench` evaluation or **execution against SQLite** exports is a natural next step.
+4. **Evaluation scope:** Scripted evaluation is available for local dev data; official leaderboard reporting still depends on benchmark protocol and submission tooling.
 5. **Dialect mismatch:** Gold SQL dialect vs `sqlglot` dialect must be kept consistent to avoid false parse failures.
 
 ---
