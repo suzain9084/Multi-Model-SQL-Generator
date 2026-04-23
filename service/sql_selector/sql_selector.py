@@ -4,7 +4,7 @@ from sqlglot import parse
 
 
 class SqlSelector:
-    def __init__(self, selection_model, generator_order=None, parse_dialect: str = "duckdb"):
+    def __init__(self, selection_model, generator_order=None, parse_dialect: str = "sqlite"):
         self.selection_model = selection_model
         self.generator_order = generator_order or {}
         self.parse_dialect = parse_dialect

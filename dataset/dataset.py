@@ -43,7 +43,7 @@ class FilteredSchemaDataset(Dataset):
             )
 
     def __len__(self) -> int:
-        return min(10, len(self._examples))
+        return len(self._examples)
 
     def __getitem__(self, idx: int) -> (SchemaFilterExample, str):
         return self._examples[idx], self._actual_result[idx]

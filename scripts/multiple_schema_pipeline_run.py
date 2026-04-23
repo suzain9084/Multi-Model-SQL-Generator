@@ -1,16 +1,15 @@
+import argparse
+import os
 import sys
 from pathlib import Path
 
-from dataset import bird_dataset
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from datasets import load_dataset
-from service.schema_filter.pipeline import SchemaFilterPipeline
-import sys
-import os
 import torch
 from tqdm import tqdm
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from dataset.bird_dataset import BirdDataset
+from service.schema_filter.pipeline import SchemaFilterPipeline
 
 # Add service to path if needed
 if os.path.dirname(os.path.dirname(os.path.abspath(__file__))) not in sys.path:
@@ -39,7 +38,31 @@ def create_batch(ds, batch_size):
     if batch:
         yield batch
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run schema filter pipeline on BIRD dataset.")
+    parser.add_argument(
+        "--data-root",
+        type=str,
+        default=None,
+        help="Path to dataset root that contains train/train.json and train/train_tables.json.",
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        default="schema_filter_results_2.json",
+        help="Path to write JSON pipeline results.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=16,
+        help="Batch size used for iteration.",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     print("=" * 80)
     print("Schema Filter Pipeline")
     print("=" * 80)
@@ -48,8 +71,7 @@ def main():
     # Load BIRD dataset
     print("Loading BIRD training dataset...")
     try:
-        # ds = load_dataset("xu3kev/BIRD-SQL-data-train", split="train")
-        ds = BirdDataset(data_root=r"E:\Github_Repo\SQL-Query-Generator\dataset")
+        ds = BirdDataset(data_root=args.data_root) if args.data_root else BirdDataset()
         print(f"✓ Loaded dataset with {len(ds)} samples")
     except Exception as e:
         print(f"Error loading dataset: {e}")
@@ -70,7 +92,7 @@ def main():
 
     # Process the whole dataset
     num_samples = len(ds)
-    batch_size = 16
+    batch_size = args.batch_size
     print(f"Processing full training split: {num_samples} samples")
     print()
 
@@ -99,7 +121,7 @@ def main():
     print()
 
     # Save results to file
-    output_file = "schema_filter_results_2.json"
+    output_file = args.output_file
     print(f"Saving {len(results)} results to {output_file}...")
     pipeline.save_results(results, output_file)
     print("✓ Results saved")

@@ -25,7 +25,7 @@ def main():
         config = json.load(f)
 
     json_path = config["json_path"]
-    parse_dialect = config.get("parse_dialect", "duckdb")
+    parse_dialect = config.get("parse_dialect", "sqlite")
     epochs = int(config.get("epochs", 3))
     batch_size = int(config.get("batch_size", 4))
     save_root = Path(config.get("save_root", "checkpoints"))

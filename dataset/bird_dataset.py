@@ -127,5 +127,6 @@ class BirdDataset(Dataset):
             "sqlfile_path": str(sqlite_path),
         }
 
-ds = BirdDataset(data_root=r"E:\Github_Repo\SQL-Query-Generator\dataset")
-print(ds[0]['db_schema']['primary_keys'])
+if __name__ == "__main__":
+    ds = BirdDataset()
+    print(ds[0]["db_schema"]["primary_keys"])

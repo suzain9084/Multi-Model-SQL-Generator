@@ -1,6 +1,6 @@
 {
   "json_path": "schema_filter_results_2.json",
-  "epochs": 10,
+  "epochs": 12,
   "batch_size": 4,
   "save_root": "checkpoints",
   "parse_dialect": "sqlite",

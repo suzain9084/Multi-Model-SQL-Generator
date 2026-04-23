@@ -5,7 +5,7 @@ from sqlglot.errors import ParseError
 from service.sql_execution.sql_execution import SqlExecutionService
 
 class MultipleSqlGenerator:
-    def __init__(self, models, parse_dialect: str = "duckdb"):
+    def __init__(self, models, parse_dialect: str = "sqlite"):
         self.models = models
         self.parse_dialect = parse_dialect
         self.sql_execution_service = SqlExecutionService()
@@ -97,6 +97,6 @@ class MultipleSqlGenerator:
                 flush=True,
             )
             out.mkdir(parents=True, exist_ok=True)
-            model.fine_tune_lora(train_dataset, output_dir=str(out), epochs=epochs)
+            model.fine_tune(train_dataset, output_dir=str(out), epochs=epochs)
             model.save(str(out))
             print(f"Saved {out}", flush=True)
